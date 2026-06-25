@@ -8,6 +8,7 @@
 /vendor
 /.trae/rules
 .env
+.env.*
 .env.backup
 .env.production
 .phpactor.json
