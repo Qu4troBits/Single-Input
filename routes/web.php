@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\BankAccountsController;
+use App\Http\Controllers\CategoriesController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionsController;
 
@@ -27,4 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions', [TransactionsController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/create', [TransactionsController::class, 'create'])->name('transactions.create');
     Route::post('/transactions', [TransactionsController::class, 'store'])->name('transactions.store');
+
+    Route::resource('bank-accounts', \App\Http\Controllers\BankAccountsController::class)->except(['show']);
+    Route::resource('categories', \App\Http\Controllers\CategoriesController::class)->except(['show']);
 });
