@@ -14,6 +14,6 @@ final readonly class ListCategoriesHandler
 
     public function handle(): array
     {
-        return $this->categories->listAll();
+        return $this->categories->findAll();
     }
 }

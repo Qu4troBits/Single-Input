@@ -12,7 +12,10 @@
         "jsx": "react-jsx",
         "strict": true,
         "types": ["vite/client"],
-        "baseUrl": "."
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["resources/js/*"]
+        }
     },
     "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx"]
 }
