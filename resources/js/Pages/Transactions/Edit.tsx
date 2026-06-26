@@ -8,7 +8,23 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
-import { ArrowLeft, Save } from 'lucide-react';
+import { Badge } from '@/Components/ui/badge';
+import { ArrowLeft, Save, AlertCircle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { formatBRL } from '@/Utils/formatCurrency';
+
+interface Transaction {
+  id: string;
+  bank_account_id: string;
+  category_id: string;
+  description: string;
+  amount: string;
+  direction: 'in' | 'out';
+  status: 'pending' | 'paid' | 'cancelled' | 'reversed';
+  competence_month: string;
+  payment_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 interface BankAccount {
   id: string;
@@ -20,27 +36,53 @@ interface Category {
   name: string;
 }
 
-interface TransactionsCreateProps extends PageProps {
+interface TransactionsEditProps extends PageProps {
+  transaction: Transaction;
   bankAccounts: BankAccount[];
   categories: Category[];
 }
 
-export default function Create({ bankAccounts, categories }: TransactionsCreateProps) {
+export default function Edit({ transaction, bankAccounts, categories }: TransactionsEditProps) {
   const { auth } = usePage<PageProps>().props;
 
-  const { data, setData, post, processing, errors } = useForm({
-    bank_account_id: '',
-    category_id: '',
-    description: '',
-    amount: '',
-    direction: 'out' as 'in' | 'out',
-    competence_month: new Date().toISOString().slice(0, 7), // YYYY-MM
-    payment_date: '',
+  const { data, setData, put, processing, errors } = useForm({
+    bank_account_id: transaction.bank_account_id,
+    category_id: transaction.category_id,
+    description: transaction.description,
+    amount: transaction.amount,
+    direction: transaction.direction,
+    competence_month: transaction.competence_month,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post(route('transactions.store'));
+    put(route('transactions.update', transaction.id));
+  };
+
+  const getStatusIcon = (status: Transaction['status']) => {
+    switch (status) {
+      case 'paid':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'cancelled':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'reversed':
+        return <AlertCircle className="h-4 w-4 text-orange-500" />;
+    }
+  };
+
+  const getStatusBadge = (status: Transaction['status']) => {
+    switch (status) {
+      case 'paid':
+        return <Badge variant="success">Pago</Badge>;
+      case 'pending':
+        return <Badge variant="warning">Pendente</Badge>;
+      case 'cancelled':
+        return <Badge variant="destructive">Cancelado</Badge>;
+      case 'reversed':
+        return <Badge variant="secondary">Estornado</Badge>;
+    }
   };
 
   const generateCompetenceMonths = () => {
@@ -72,9 +114,9 @@ export default function Create({ bankAccounts, categories }: TransactionsCreateP
       header={
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight">Novo Lançamento</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Editar Lançamento</h2>
             <p className="text-muted-foreground">
-              Registre uma nova transação financeira
+              Atualize os dados da transação financeira
             </p>
           </div>
           <Link href={route('transactions.index')}>
@@ -86,14 +128,52 @@ export default function Create({ bankAccounts, categories }: TransactionsCreateP
         </div>
       }
     >
-      <Head title="Novo Lançamento" />
+      <Head title="Editar Lançamento" />
 
       <div className="max-w-2xl mx-auto">
+        {/* Informações da transação */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-sm">Informações da Transação</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-muted-foreground">ID</Label>
+                <p className="font-mono text-sm">{transaction.id}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Status</Label>
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(transaction.status)}
+                  {getStatusBadge(transaction.status)}
+                </div>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Criado em</Label>
+                <p>{new Date(transaction.created_at).toLocaleDateString('pt-BR')}</p>
+              </div>
+              <div>
+                <Label className="text-muted-foreground">Última atualização</Label>
+                <p>{new Date(transaction.updated_at).toLocaleDateString('pt-BR')}</p>
+              </div>
+            </div>
+            
+            {transaction.payment_date && (
+              <div>
+                <Label className="text-muted-foreground">Data de Pagamento</Label>
+                <p>{new Date(transaction.payment_date).toLocaleDateString('pt-BR')}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Formulário de edição */}
         <Card>
           <CardHeader>
-            <CardTitle>Informações do Lançamento</CardTitle>
+            <CardTitle>Editar Informações</CardTitle>
             <CardDescription>
-              Preencha os dados da transação financeira
+              Atualize os dados da transação financeira
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -209,6 +289,13 @@ export default function Create({ bankAccounts, categories }: TransactionsCreateP
                     min="0"
                   />
                 </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>Valor atual:</span>
+                  <span className={`font-semibold ${transaction.direction === 'in' ? 'text-green-600' : 'text-red-600'}`}>
+                    {transaction.direction === 'in' ? '+' : '-'}
+                    {formatBRL(transaction.amount)}
+                  </span>
+                </div>
                 {errors.amount && (
                   <p className="text-sm text-red-500">{errors.amount}</p>
                 )}
@@ -237,51 +324,77 @@ export default function Create({ bankAccounts, categories }: TransactionsCreateP
                 )}
               </div>
 
-              {/* Data de pagamento (opcional) */}
-              <div className="space-y-2">
-                <Label htmlFor="payment_date">Data de Pagamento (opcional)</Label>
-                <Input
-                  id="payment_date"
-                  value={data.payment_date}
-                  onChange={(e) => setData('payment_date', e.target.value)}
-                  type="date"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Se preenchida, a transação será marcada como paga automaticamente
-                </p>
-                {errors.payment_date && (
-                  <p className="text-sm text-red-500">{errors.payment_date}</p>
-                )}
-              </div>
-
               {/* Ações */}
-              <div className="flex items-center justify-end gap-4 pt-6 border-t">
-                <Link href={route('transactions.index')}>
-                  <Button type="button" variant="outline">
-                    Cancelar
+              <div className="flex items-center justify-between gap-4 pt-6 border-t">
+                <div className="flex items-center gap-4">
+                  {transaction.status === 'pending' && (
+                    <Link
+                      href={route('transactions.markAsPaid', transaction.id)}
+                      method="post"
+                      as="button"
+                    >
+                      <Button type="button" variant="default">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Marcar como Pago
+                      </Button>
+                    </Link>
+                  )}
+                  {transaction.status === 'pending' && (
+                    <Link
+                      href={route('transactions.markAsCancelled', transaction.id)}
+                      method="post"
+                      as="button"
+                    >
+                      <Button type="button" variant="destructive">
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Cancelar
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <Link href={route('transactions.index')}>
+                    <Button type="button" variant="outline">
+                      Cancelar
+                    </Button>
+                  </Link>
+                  <Button type="submit" disabled={processing}>
+                    <Save className="mr-2 h-4 w-4" />
+                    {processing ? 'Salvando...' : 'Salvar Alterações'}
                   </Button>
-                </Link>
-                <Button type="submit" disabled={processing}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {processing ? 'Salvando...' : 'Salvar Lançamento'}
-                </Button>
+                </div>
               </div>
             </form>
           </CardContent>
         </Card>
 
-        {/* Informações importantes */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-sm">Informações Importantes</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
-            <p>• <strong>Competência:</strong> Mês ao qual a transação pertence, independente da data de pagamento.</p>
-            <p>• <strong>Data de Pagamento:</strong> Data efetiva do pagamento/recebimento.</p>
-            <p>• <strong>Status:</strong> Transações sem data de pagamento ficam como "Pendentes".</p>
-            <p>• <strong>Valores:</strong> Use ponto como separador decimal (ex: 1500.50 para R$ 1.500,50).</p>
-          </CardContent>
-        </Card>
+        {/* Avisos importantes */}
+        {transaction.status !== 'pending' && (
+          <Card className="mt-6 border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-sm flex items-center gap-2 text-yellow-800">
+                <AlertCircle className="h-4 w-4" />
+                Aviso Importante
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-yellow-700 space-y-2">
+              <p>
+                Esta transação está com status <strong>{transaction.status === 'paid' ? 'PAGA' : 'CANCELADA'}</strong>.
+                Algumas alterações podem ser limitadas.
+              </p>
+              {transaction.status === 'paid' && (
+                <p>
+                  • Para alterar o status, você precisa primeiro estornar a transação.
+                </p>
+              )}
+              {transaction.status === 'cancelled' && (
+                <p>
+                  • Transações canceladas não podem ser reativadas. Crie uma nova transação se necessário.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AuthenticatedLayout>
   );
