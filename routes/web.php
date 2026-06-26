@@ -60,4 +60,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/{bankAccountId}/reconcile', [\App\Http\Controllers\BankReconciliationController::class, 'reconcileForm'])->name('reconcile.form');
         Route::post('/{bankAccountId}/reconcile', [\App\Http\Controllers\BankReconciliationController::class, 'reconcile'])->name('reconcile');
     });
+
+    // Projeções Financeiras
+    Route::prefix('financial-projections')->name('financial-projections.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\FinancialProjectionsController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\FinancialProjectionsController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\FinancialProjectionsController::class, 'store'])->name('store');
+        Route::get('/{projectionId}', [\App\Http\Controllers\FinancialProjectionsController::class, 'show'])->name('show');
+        Route::get('/{projectionId}/edit', [\App\Http\Controllers\FinancialProjectionsController::class, 'edit'])->name('edit');
+        Route::put('/{projectionId}', [\App\Http\Controllers\FinancialProjectionsController::class, 'update'])->name('update');
+        Route::delete('/{projectionId}', [\App\Http\Controllers\FinancialProjectionsController::class, 'destroy'])->name('destroy');
+        Route::post('/generate', [\App\Http\Controllers\FinancialProjectionsController::class, 'generate'])->name('generate');
+    });
 });

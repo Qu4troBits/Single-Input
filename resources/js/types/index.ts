@@ -4,6 +4,7 @@ export * from './category';
 export * from './transaction';
 export * from './reports';
 export * from './bank-reconciliation';
+export * from './financial-projections';
 
 export interface User {
     id: string;

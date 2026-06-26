@@ -13,6 +13,7 @@ use App\Application\Tenancy\Ports\InitialTenantAdminCreatorInterface;
 use App\Application\Tenancy\Ports\TenantSchemaManagerInterface;
 use App\Domain\Banking\BankAccountRepositoryInterface;
 use App\Domain\Categories\CategoryRepositoryInterface;
+use App\Domain\FinancialProjections\FinancialProjectionRepositoryInterface;
 use App\Domain\Plans\PlanRepositoryInterface;
 use App\Domain\Tenancy\TenantContextInterface;
 use App\Domain\Tenancy\TenantRepositoryInterface;
@@ -22,6 +23,7 @@ use App\Infrastructure\Auth\EloquentUserAuthRepository;
 use App\Infrastructure\Auth\LaravelSessionAuthenticator;
 use App\Infrastructure\Auth\LaravelTwoFactorChallengeStore;
 use App\Infrastructure\Auth\LaravelTwoFactorSecretCipher;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentFinancialProjectionRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentPlanRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentBankAccountRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentCategoryRepository;
@@ -56,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TransactionRepositoryInterface::class, EloquentTransactionRepository::class);
         $this->app->bind(BankAccountRepositoryInterface::class, EloquentBankAccountRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, EloquentCategoryRepository::class);
+        $this->app->bind(FinancialProjectionRepositoryInterface::class, EloquentFinancialProjectionRepository::class);
     }
 
     /**
