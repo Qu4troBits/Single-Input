@@ -7,54 +7,47 @@ namespace App\Infrastructure\Persistence\Eloquent\Models;
 use App\Infrastructure\Persistence\Eloquent\Scopes\TenantDataScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @property string $id
- * @property string $name
- * @property string $type
- * @property string $status
- * @property string|null $bank_code
- * @property string|null $agency
- * @property string|null $account_number
- * @property string|null $account_digit
- * @property string|null $description
- * @property string $balance
- * @property string $initial_balance
- * @property \Illuminate\Support\Carbon $created_at
- * @property \Illuminate\Support\Carbon $updated_at
- * @property \Illuminate\Support\Carbon|null $deleted_at
- */
-class BankAccountModel extends Model
+final class BankAccountModel extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'bank_accounts';
 
-    protected $keyType = 'string';
+    protected $primaryKey = 'id';
 
     public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id',
         'name',
         'type',
-        'status',
         'bank_code',
-        'agency',
+        'bank_name',
+        'agency_number',
         'account_number',
         'account_digit',
-        'description',
-        'balance',
         'initial_balance',
-        'created_at',
-        'updated_at',
+        'current_balance',
+        'status',
+        'description',
+        'color',
+        'icon',
+        'include_in_dashboard',
+        'include_in_reports',
+        'is_default',
     ];
 
     protected $casts = [
-        'balance' => 'decimal:2',
         'initial_balance' => 'decimal:2',
+        'current_balance' => 'decimal:2',
+        'include_in_dashboard' => 'boolean',
+        'include_in_reports' => 'boolean',
+        'is_default' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -63,5 +56,15 @@ class BankAccountModel extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new TenantDataScope());
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(TransactionModel::class, 'bank_account_id', 'id');
+    }
+
+    public function dailyReconciliations(): HasMany
+    {
+        return $this->hasMany(DailyReconciliationModel::class, 'bank_account_id', 'id');
     }
 }

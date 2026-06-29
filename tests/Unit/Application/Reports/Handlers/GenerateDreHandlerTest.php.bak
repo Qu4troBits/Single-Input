@@ -1,0 +1,394 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit\Application\Reports\Handlers;
+
+use App\Application\Reports\Data\GenerateDreData;
+use App\Application\Reports\Handlers\GenerateDreHandler;
+use App\Domain\Reports\Dre;
+use App\Domain\Reports\DreGenerator;
+use App\Domain\Reports\ValueObjects\DrePeriod;
+use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
+
+final class GenerateDreHandlerTest extends TestCase
+{
+    use ProphecyTrait;
+
+    private ObjectProphecy $dreGenerator;
+    private GenerateDreHandler $handler;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        
+        $this->dreGenerator = $this->prophesize(DreGenerator::class);
+        $this->handler = new GenerateDreHandler($this->dreGenerator->reveal());
+    }
+
+    public function test_handle_monthly_dre(): void
+    {
+        $data = new GenerateDreData(
+            periodType: 'monthly',
+            yearMonth: '2024-01',
+            categoryId: null,
+            scenario: 'base',
+        );
+
+        $period = DrePeriod::createMonthly('2024-01');
+        
+        $dre = $this->prophesize(Dre::class);
+        $dre->getPeriod()->willReturn($period);
+        $dre->getTitle()->willReturn('Demonstrativo de Resultados do Exercício - janeiro/2024');
+        $dre->getCategoryId()->willReturn(null);
+        $dre->getScenario()->willReturn('base');
+        
+        $this->dreGenerator->generate($period, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+        
+        $this->dreGenerator->generateDreTitle($period, null, 'base')
+            ->willReturn('Demonstrativo de Resultados do Exercício - janeiro/2024')
+            ->shouldBeCalled();
+
+        $result = $this->handler->handle($data);
+
+        $this->assertInstanceOf(Dre::class, $result);
+        $this->assertEquals('Demonstrativo de Resultados do Exercício - janeiro/2024', $result->getTitle());
+        $this->assertNull($result->getCategoryId());
+        $this->assertEquals('base', $result->getScenario());
+    }
+
+    public function test_handle_quarterly_dre(): void
+    {
+        $data = new GenerateDreData(
+            periodType: 'quarterly',
+            year: '2024',
+            quarter: 1,
+            categoryId: null,
+            scenario: 'base',
+        );
+
+        $period = DrePeriod::createQuarterly('2024', 1);
+        
+        $dre = $this->prophesize(Dre::class);
+        $dre->getPeriod()->willReturn($period);
+        $dre->getTitle()->willReturn('Demonstrativo de Resultados do Exercício - 1º Trimestre 2024');
+        $dre->getCategoryId()->willReturn(null);
+        $dre->getScenario()->willReturn('base');
+        
+        $this->dreGenerator->generate($period, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+        
+        $this->dreGenerator->generateDreTitle($period, null, 'base')
+            ->willReturn('Demonstrativo de Resultados do Exercício - 1º Trimestre 2024')
+            ->shouldBeCalled();
+
+        $result = $this->handler->handle($data);
+
+        $this->assertInstanceOf(Dre::class, $result);
+        $this->assertEquals('Demonstrativo de Resultados do Exercício - 1º Trimestre 2024', $result->getTitle());
+        $this->assertNull($result->getCategoryId());
+        $this->assertEquals('base', $result->getScenario());
+    }
+
+    public function test_handle_yearly_dre(): void
+    {
+        $data = new GenerateDreData(
+            periodType: 'yearly',
+            year: '2024',
+            categoryId: null,
+            scenario: 'base',
+        );
+
+        $period = DrePeriod::createYearly('2024');
+        
+        $dre = $this->prophesize(Dre::class);
+        $dre->getPeriod()->willReturn($period);
+        $dre->getTitle()->willReturn('Demonstrativo de Resultados do Exercício - Ano 2024');
+        $dre->getCategoryId()->willReturn(null);
+        $dre->getScenario()->willReturn('base');
+        
+        $this->dreGenerator->generate($period, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+        
+        $this->dreGenerator->generateDreTitle($period, null, 'base')
+            ->willReturn('Demonstrativo de Resultados do Exercício - Ano 2024')
+            ->shouldBeCalled();
+
+        $result = $this->handler->handle($data);
+
+        $this->assertInstanceOf(Dre::class, $result);
+        $this->assertEquals('Demonstrativo de Resultados do Exercício - Ano 2024', $result->getTitle());
+        $this->assertNull($result->getCategoryId());
+        $this->assertEquals('base', $result->getScenario());
+    }
+
+    public function test_handle_custom_period_dre(): void
+    {
+        $data = new GenerateDreData(
+            periodType: 'custom',
+            startDate: '2024-01-01',
+            endDate: '2024-01-31',
+            categoryId: null,
+            scenario: 'base',
+        );
+
+        $startDate = new \DateTimeImmutable('2024-01-01');
+        $endDate = new \DateTimeImmutable('2024-01-31');
+        $period = new DrePeriod($startDate, $endDate, 'custom');
+        
+        $dre = $this->prophesize(Dre::class);
+        $dre->getPeriod()->willReturn($period);
+        $dre->getTitle()->willReturn('Demonstrativo de Resultados do Exercício - 01/01/2024 a 31/01/2024');
+        $dre->getCategoryId()->willReturn(null);
+        $dre->getScenario()->willReturn('base');
+        
+        $this->dreGenerator->generate($period, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+        
+        $this->dreGenerator->generateDreTitle($period, null, 'base')
+            ->willReturn('Demonstrativo de Resultados do Exercício - 01/01/2024 a 31/01/2024')
+            ->shouldBeCalled();
+
+        $result = $this->handler->handle($data);
+
+        $this->assertInstanceOf(Dre::class, $result);
+        $this->assertEquals('Demonstrativo de Resultados do Exercício - 01/01/2024 a 31/01/2024', $result->getTitle());
+        $this->assertNull($result->getCategoryId());
+        $this->assertEquals('base', $result->getScenario());
+    }
+
+    public function test_handle_dre_with_category(): void
+    {
+        $categoryId = 'category-123';
+        
+        $data = new GenerateDreData(
+            periodType: 'monthly',
+            yearMonth: '2024-01',
+            categoryId: $categoryId,
+            scenario: 'base',
+        );
+
+        $period = DrePeriod::createMonthly('2024-01');
+        
+        $dre = $this->prophesize(Dre::class);
+        $dre->getPeriod()->willReturn($period);
+        $dre->getTitle()->willReturn('Demonstrativo de Resultados do Exercício - janeiro/2024 - Vendas');
+        $dre->getCategoryId()->willReturn($categoryId);
+        $dre->getScenario()->willReturn('base');
+        
+        $this->dreGenerator->generate($period, $categoryId, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+        
+        $this->dreGenerator->generateDreTitle($period, $categoryId, 'base')
+            ->willReturn('Demonstrativo de Resultados do Exercício - janeiro/2024 - Vendas')
+            ->shouldBeCalled();
+
+        $result = $this->handler->handle($data);
+
+        $this->assertInstanceOf(Dre::class, $result);
+        $this->assertEquals('Demonstrativo de Resultados do Exercício - janeiro/2024 - Vendas', $result->getTitle());
+        $this->assertEquals($categoryId, $result->getCategoryId());
+        $this->assertEquals('base', $result->getScenario());
+    }
+
+    public function test_handle_dre_with_different_scenario(): void
+    {
+        $data = new GenerateDreData(
+            periodType: 'monthly',
+            yearMonth: '2024-01',
+            categoryId: null,
+            scenario: 'optimistic',
+        );
+
+        $period = DrePeriod::createMonthly('2024-01');
+        
+        $dre = $this->prophesize(Dre::class);
+        $dre->getPeriod()->willReturn($period);
+        $dre->getTitle()->willReturn('Demonstrativo de Resultados do Exercício - janeiro/2024 - Cenário: Otimista');
+        $dre->getCategoryId()->willReturn(null);
+        $dre->getScenario()->willReturn('optimistic');
+        
+        $this->dreGenerator->generate($period, null, 'optimistic')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+        
+        $this->dreGenerator->generateDreTitle($period, null, 'optimistic')
+            ->willReturn('Demonstrativo de Resultados do Exercício - janeiro/2024 - Cenário: Otimista')
+            ->shouldBeCalled();
+
+        $result = $this->handler->handle($data);
+
+        $this->assertInstanceOf(Dre::class, $result);
+        $this->assertEquals('Demonstrativo de Resultados do Exercício - janeiro/2024 - Cenário: Otimista', $result->getTitle());
+        $this->assertNull($result->getCategoryId());
+        $this->assertEquals('optimistic', $result->getScenario());
+    }
+
+    public function test_get_standard_dre_structure(): void
+    {
+        $standardStructure = [
+            ['code' => 'REV', 'description' => 'RECEITA OPERACIONAL BRUTA', 'type' => 'revenue', 'level' => 1],
+            ['code' => 'REV-DED', 'description' => '(-) Deduções da Receita', 'type' => 'revenue', 'level' => 2, 'parent_id' => 'REV'],
+            ['code' => 'REV-NET', 'description' => 'RECEITA OPERACIONAL LÍQUIDA', 'type' => 'revenue', 'level' => 1],
+            ['code' => 'COGS', 'description' => '(-) Custo dos Produtos/Serviços Vendidos', 'type' => 'expense', 'level' => 1],
+            ['code' => 'GROSS', 'description' => 'LUCRO BRUTO', 'type' => 'profit', 'level' => 1],
+            ['code' => 'OPEX', 'description' => '(-) Despesas Operacionais', 'type' => 'expense', 'level' => 1],
+            ['code' => 'EBIT', 'description' => 'LUCRO OPERACIONAL (EBIT)', 'type' => 'profit', 'level' => 1],
+            ['code' => 'NON-OP', 'description' => 'Receitas/Despesas Não Operacionais', 'type' => 'revenue', 'level' => 1],
+            ['code' => 'EBT', 'description' => 'LUCRO ANTES DO IMPOSTO DE RENDA (EBT)', 'type' => 'profit', 'level' => 1],
+            ['code' => 'TAX', 'description' => '(-) Provisão para Imposto de Renda', 'type' => 'expense', 'level' => 2, 'parent_id' => 'EBT'],
+            ['code' => 'NET', 'description' => 'LUCRO LÍQUIDO', 'type' => 'profit', 'level' => 1],
+        ];
+
+        $this->dreGenerator->getStandardDreStructure()
+            ->willReturn($standardStructure)
+            ->shouldBeCalled();
+
+        $result = $this->handler->getStandardDreStructure();
+
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+        
+        // Verificar estrutura básica
+        $this->assertArrayHasKey('code', $result[0]);
+        $this->assertArrayHasKey('description', $result[0]);
+        $this->assertArrayHasKey('type', $result[0]);
+        $this->assertArrayHasKey('level', $result[0]);
+    }
+
+    public function test_calculate_financial_ratios(): void
+    {
+        $dre = $this->prophesize(Dre::class);
+        
+        $ratios = [
+            'gross_margin' => '40.00',
+            'operating_margin' => '25.00',
+            'net_margin' => '18.00',
+            'ebitda_margin' => '30.00',
+            'return_on_assets' => '12.00',
+            'return_on_equity' => '22.00',
+        ];
+
+        $this->dreGenerator->calculateFinancialRatios($dre->reveal())
+            ->willReturn($ratios)
+            ->shouldBeCalled();
+
+        $result = $this->handler->calculateFinancialRatios($dre->reveal());
+
+        $this->assertIsArray($result);
+        $this->assertNotEmpty($result);
+        
+        // Verificar índices básicos
+        $this->assertArrayHasKey('gross_margin', $result);
+        $this->assertArrayHasKey('operating_margin', $result);
+        $this->assertArrayHasKey('net_margin', $result);
+    }
+
+    public function test_generate_consolidated_dre(): void
+    {
+        $periods = [
+            DrePeriod::createMonthly('2024-01'),
+            DrePeriod::createMonthly('2024-02'),
+        ];
+
+        $dre = $this->prophesize(Dre::class);
+        
+        $this->dreGenerator->generateConsolidated($periods, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+
+        $result = $this->handler->generateConsolidated($periods);
+
+        $this->assertInstanceOf(Dre::class, $result);
+    }
+
+    public function test_generate_comparative_dre(): void
+    {
+        $currentPeriod = DrePeriod::createMonthly('2024-02');
+        $previousPeriod = DrePeriod::createMonthly('2024-01');
+
+        $dre = $this->prophesize(Dre::class);
+        
+        $this->dreGenerator->generateComparative($currentPeriod, $previousPeriod, null)
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+
+        $result = $this->handler->generateComparative($currentPeriod, $previousPeriod);
+
+        $this->assertInstanceOf(Dre::class, $result);
+    }
+
+    public function test_generate_projected_dre(): void
+    {
+        $period = DrePeriod::createMonthly('2024-03');
+        $growthRate = 0.10; // 10%
+
+        $dre = $this->prophesize(Dre::class);
+        
+        $this->dreGenerator->generateProjected($period, $growthRate, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+
+        $result = $this->handler->generateProjected($period, $growthRate);
+
+        $this->assertInstanceOf(Dre::class, $result);
+    }
+
+    public function test_generate_variance_analysis_dre(): void
+    {
+        $actualPeriod = DrePeriod::createMonthly('2024-02');
+        $budgetPeriod = DrePeriod::createMonthly('2024-02');
+
+        $dre = $this->prophesize(Dre::class);
+        
+        $this->dreGenerator->generateVarianceAnalysis($actualPeriod, $budgetPeriod, null)
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+
+        $result = $this->handler->generateVarianceAnalysis($actualPeriod, $budgetPeriod);
+
+        $this->assertInstanceOf(Dre::class, $result);
+    }
+
+    public function test_generate_trend_analysis_dre(): void
+    {
+        $periods = [
+            DrePeriod::createMonthly('2024-01'),
+            DrePeriod::createMonthly('2024-02'),
+            DrePeriod::createMonthly('2024-03'),
+        ];
+
+        $dre = $this->prophesize(Dre::class);
+        
+        $this->dreGenerator->generateTrendAnalysis($periods, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+
+        $result = $this->handler->generateTrendAnalysis($periods);
+
+        $this->assertInstanceOf(Dre::class, $result);
+    }
+
+    public function test_generate_profitability_analysis_dre(): void
+    {
+        $period = DrePeriod::createMonthly('2024-01');
+
+        $dre = $this->prophesize(Dre::class);
+        
+        $this->dreGenerator->generateProfitabilityAnalysis($period, null, 'base')
+            ->willReturn($dre->reveal())
+            ->shouldBeCalled();
+
+        $result = $this->handler->generateProfitabilityAnalysis($period);
+
+        $this->assertInstanceOf(Dre::class, $result);
+    }
+}

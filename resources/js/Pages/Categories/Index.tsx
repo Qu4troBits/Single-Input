@@ -1,53 +1,111 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
-import Layout from '@/Layouts/Layout';
+import React, { useState, useEffect } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageProps } from '@/types';
 import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Badge } from '@/Components/ui/badge';
+import { CategoryType, CategoryStatus } from '@/Types/Category';
 
 interface Category {
     id: string;
     name: string;
-    type: string;
-    status: string;
+    type: CategoryType;
+    code: string;
+    description: string | null;
     color: string | null;
     icon: string | null;
-    parent_id: string | null;
-    created_at: string;
-    updated_at: string;
+    isOperating: boolean;
+    isTaxDeductible: boolean;
+    includeInReports: boolean;
+    isDefault: boolean;
+    parentId: string | null;
+    createdAt: string;
+    updatedAt: string;
+    archivedAt: string | null;
 }
 
-interface Props {
+interface Props extends PageProps {
     categories: Category[];
+    meta: {
+        total: number;
+        per_page: number;
+        current_page: number;
+        last_page: number;
+        from: number;
+        to: number;
+    };
+    filters: {
+        type?: string;
+        status?: string;
+        is_operating?: boolean;
+        is_tax_deductible?: boolean;
+        include_in_reports?: boolean;
+        is_default?: boolean;
+    };
+    categoryTypes: Array<{ value: string; label: string }>;
+    categoryStatuses: Array<{ value: string; label: string }>;
 }
 
-export default function Index({ categories }: Props) {
-    const getStatusColor = (status: string) => {
+export default function CategoryIndex({ 
+    categories, 
+    meta, 
+    filters, 
+    categoryTypes, 
+    categoryStatuses 
+}: Props) {
+    const [localFilters, setLocalFilters] = useState({
+        type: filters.type || '',
+        status: filters.status || '',
+        is_operating: filters.is_operating || false,
+        is_tax_deductible: filters.is_tax_deductible || false,
+        include_in_reports: filters.include_in_reports || false,
+        is_default: filters.is_default || false,
+    });
+    const [isFiltering, setIsFiltering] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (isFiltering) {
+                router.get(route('categories.index'), localFilters, {
+                    preserveState: true,
+                    preserveScroll: true,
+                });
+                setIsFiltering(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [localFilters, isFiltering]);
+
+    const handleFilterChange = (key: keyof typeof localFilters, value: any) => {
+        setLocalFilters(prev => ({ ...prev, [key]: value }));
+        setIsFiltering(true);
+    };
+
+    const getStatusBadgeVariant = (status: CategoryStatus) => {
         switch (status) {
-            case 'active': return 'bg-green-100 text-green-800';
-            case 'inactive': return 'bg-yellow-100 text-yellow-800';
-            case 'archived': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case CategoryStatus.ACTIVE:
+                return 'success';
+            case CategoryStatus.INACTIVE:
+                return 'secondary';
+            case CategoryStatus.ARCHIVED:
+                return 'destructive';
+            default:
+                return 'default';
         }
     };
 
-    const getTypeLabel = (type: string) => {
-        switch (type) {
-            case 'income': return 'Receita';
-            case 'expense': return 'Despesa';
-            case 'transfer': return 'Transferência';
-            default: return type;
-        }
+    const getTypeLabel = (type: CategoryType) => {
+        return categoryTypes.find(t => t.value === type)?.label || type;
     };
 
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'active': return 'Ativo';
-            case 'inactive': return 'Inativo';
-            case 'archived': return 'Arquivado';
-            default: return status;
-        }
+    const getStatusLabel = (status: CategoryStatus) => {
+        return categoryStatuses.find(s => s.value === status)?.label || status;
     };
 
     const findCategoryName = (id: string | null) => {
@@ -56,12 +114,16 @@ export default function Index({ categories }: Props) {
         return category ? category.name : '-';
     };
 
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('pt-BR');
+    };
+
     return (
-        <Layout>
+        <AuthenticatedLayout>
             <Head title="Categorias" />
 
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
+            <div className="container mx-auto py-6">
+                <div className="flex items-center justify-between mb-6">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Categorias</h1>
                         <p className="text-muted-foreground">
@@ -75,107 +137,284 @@ export default function Index({ categories }: Props) {
                     </Link>
                 </div>
 
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle>Filtros</CardTitle>
+                        <CardDescription>
+                            Filtre as categorias por tipo, status e outras características
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="type">Tipo</Label>
+                                <Select
+                                    value={localFilters.type}
+                                    onValueChange={(value) => handleFilterChange('type', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos os tipos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">Todos os tipos</SelectItem>
+                                        {categoryTypes.map((type) => (
+                                            <SelectItem key={type.value} value={type.value}>
+                                                {type.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="status">Status</Label>
+                                <Select
+                                    value={localFilters.status}
+                                    onValueChange={(value) => handleFilterChange('status', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos os status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">Todos os status</SelectItem>
+                                        {categoryStatuses.map((status) => (
+                                            <SelectItem key={status.value} value={status.value}>
+                                                {status.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="is_operating">Operacional</Label>
+                                <Select
+                                    value={localFilters.is_operating ? 'true' : 'false'}
+                                    onValueChange={(value) => handleFilterChange('is_operating', value === 'true')}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Todos</SelectItem>
+                                        <SelectItem value="true">Apenas Operacionais</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="is_tax_deductible">Dedutível</Label>
+                                <Select
+                                    value={localFilters.is_tax_deductible ? 'true' : 'false'}
+                                    onValueChange={(value) => handleFilterChange('is_tax_deductible', value === 'true')}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Todos</SelectItem>
+                                        <SelectItem value="true">Apenas Dedutíveis</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="include_in_reports">Relatórios</Label>
+                                <Select
+                                    value={localFilters.include_in_reports ? 'true' : 'false'}
+                                    onValueChange={(value) => handleFilterChange('include_in_reports', value === 'true')}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Todos</SelectItem>
+                                        <SelectItem value="true">Apenas em Relatórios</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="is_default">Padrão</Label>
+                                <Select
+                                    value={localFilters.is_default ? 'true' : 'false'}
+                                    onValueChange={(value) => handleFilterChange('is_default', value === 'true')}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Todos</SelectItem>
+                                        <SelectItem value="true">Apenas Padrão</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Categorias</CardTitle>
                         <CardDescription>
-                            Lista de todas as categorias cadastradas
+                            Total de {meta.total} categorias
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {categories.length === 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Código</TableHead>
+                                    <TableHead>Nome</TableHead>
+                                    <TableHead>Tipo</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Cor</TableHead>
+                                    <TableHead>Ícone</TableHead>
+                                    <TableHead>Categoria Pai</TableHead>
+                                    <TableHead>Criado em</TableHead>
+                                    <TableHead className="text-right">Ações</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {categories.map((category) => (
+                                    <TableRow key={category.id}>
+                                        <TableCell className="font-medium">
+                                            {category.code}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                {category.icon && (
+                                                    <span className="text-lg">{category.icon}</span>
+                                                )}
+                                                {category.name}
+                                                {category.isDefault && (
+                                                    <Badge variant="outline" className="ml-2">
+                                                        Padrão
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">
+                                                {getTypeLabel(category.type)}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={getStatusBadgeVariant(category.status)}>
+                                                {getStatusLabel(category.status)}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {category.color && (
+                                                <div className="flex items-center space-x-2">
+                                                    <div
+                                                        className="w-4 h-4 rounded-full border"
+                                                        style={{ backgroundColor: category.color }}
+                                                    />
+                                                    <span className="text-sm">{category.color}</span>
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {category.icon && (
+                                                <span className="text-sm">{category.icon}</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {findCategoryName(category.parentId)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {formatDate(category.createdAt)}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end space-x-2">
+                                                <Link href={route('categories.show', category.id)}>
+                                                    <Button variant="ghost" size="sm">
+                                                        Ver
+                                                    </Button>
+                                                </Link>
+                                                <Link href={route('categories.edit', category.id)}>
+                                                    <Button variant="ghost" size="sm">
+                                                        Editar
+                                                    </Button>
+                                                </Link>
+                                                {category.status === CategoryStatus.ACTIVE && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            if (confirm('Tem certeza que deseja arquivar esta categoria?')) {
+                                                                router.post(route('categories.archive', category.id));
+                                                            }
+                                                        }}
+                                                    >
+                                                        Arquivar
+                                                    </Button>
+                                                )}
+                                                {category.status === CategoryStatus.ARCHIVED && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            if (confirm('Tem certeza que deseja restaurar esta categoria?')) {
+                                                                router.post(route('categories.restore', category.id));
+                                                            }
+                                                        }}
+                                                    >
+                                                        Restaurar
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+
+                        {meta.total > 0 && (
+                            <div className="flex items-center justify-between mt-4">
+                                <div className="text-sm text-muted-foreground">
+                                    Mostrando {meta.from} a {meta.to} de {meta.total} categorias
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleFilterChange('type', localFilters.type)}
+                                        disabled={meta.current_page === 1}
+                                    >
+                                        Anterior
+                                    </Button>
+                                    <span className="text-sm">
+                                        Página {meta.current_page} de {meta.last_page}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleFilterChange('type', localFilters.type)}
+                                        disabled={meta.current_page === meta.last_page}
+                                    >
+                                        Próxima
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        {categories.length === 0 && (
                             <div className="text-center py-12">
-                                <p className="text-muted-foreground">
-                                    Nenhuma categoria cadastrada ainda.
-                                </p>
-                                <Link href={route('categories.create')} className="mt-4 inline-block">
-                                    <Button variant="outline">
+                                <div className="text-muted-foreground mb-4">
+                                    Nenhuma categoria encontrada
+                                </div>
+                                <Link href={route('categories.create')}>
+                                    <Button>
                                         Criar Primeira Categoria
                                     </Button>
                                 </Link>
                             </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nome</TableHead>
-                                        <TableHead>Tipo</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Cor</TableHead>
-                                        <TableHead>Ícone</TableHead>
-                                        <TableHead>Categoria Pai</TableHead>
-                                        <TableHead>Criado em</TableHead>
-                                        <TableHead className="text-right">Ações</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {categories.map((category) => (
-                                        <TableRow key={category.id}>
-                                            <TableCell className="font-medium">
-                                                {category.name}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">
-                                                    {getTypeLabel(category.type)}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge className={getStatusColor(category.status)}>
-                                                    {getStatusLabel(category.status)}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {category.color && (
-                                                    <div className="flex items-center space-x-2">
-                                                        <div
-                                                            className="w-4 h-4 rounded-full border"
-                                                            style={{ backgroundColor: category.color }}
-                                                        />
-                                                        <span className="text-sm">{category.color}</span>
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {category.icon && (
-                                                    <span className="text-sm">{category.icon}</span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {findCategoryName(category.parent_id)}
-                                            </TableCell>
-                                            <TableCell>
-                                                {new Date(category.created_at).toLocaleDateString('pt-BR')}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end space-x-2">
-                                                    <Link href={route('categories.edit', category.id)}>
-                                                        <Button variant="outline" size="sm">
-                                                            Editar
-                                                        </Button>
-                                                    </Link>
-                                                    <Link
-                                                        href={route('categories.destroy', category.id)}
-                                                        method="delete"
-                                                        as="button"
-                                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
-                                                        onClick={(e) => {
-                                                            if (!confirm('Tem certeza que deseja excluir esta categoria?')) {
-                                                                e.preventDefault();
-                                                            }
-                                                        }}
-                                                    >
-                                                        Excluir
-                                                    </Link>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
                         )}
                     </CardContent>
                 </Card>
             </div>
-        </Layout>
+        </AuthenticatedLayout>
     );
 }

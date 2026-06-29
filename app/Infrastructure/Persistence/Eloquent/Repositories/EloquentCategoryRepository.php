@@ -4,112 +4,287 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 
-use App\Domain\Categories\Category;
-use App\Domain\Categories\CategoryId;
-use App\Domain\Categories\CategoryRepositoryInterface;
-use App\Domain\Categories\CategoryStatus;
-use App\Domain\Categories\CategoryType;
+use App\Domain\Categories\Entities\Category;
+use App\Domain\Categories\Repositories\CategoryRepositoryInterface;
+use App\Domain\Categories\ValueObjects\CategoryId;
+use App\Domain\Categories\ValueObjects\CategoryType;
 use App\Infrastructure\Persistence\Eloquent\Models\CategoryModel;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use DateTimeImmutable;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 final class EloquentCategoryRepository implements CategoryRepositoryInterface
 {
-    public function save(Category $category): void
-    {
-        CategoryModel::updateOrCreate(
-            ['id' => $category->getId()->toString()],
-            [
-                'name' => $category->getName(),
-                'type' => $category->getType()->value,
-                'status' => $category->getStatus()->value,
-                'color' => $category->getColor(),
-                'icon' => $category->getIcon(),
-                'parent_id' => $category->getParentId()?->toString(),
-                'created_at' => $category->getCreatedAt(),
-                'updated_at' => $category->getUpdatedAt(),
-            ]
-        );
-    }
-
     public function findById(CategoryId $id): ?Category
     {
-        try {
-            $model = CategoryModel::findOrFail($id->toString());
-            return $this->toDomain($model);
-        } catch (ModelNotFoundException) {
+        $model = CategoryModel::find($id->toString());
+
+        if (!$model) {
             return null;
         }
+
+        return $this->mapToEntity($model);
     }
 
-    /** @return array<Category> */
-    public function findAll(): array
+    public function findByCode(string $code): ?Category
     {
-        return CategoryModel::all()
-            ->map(fn (CategoryModel $model) => $this->toDomain($model))
-            ->toArray();
+        $model = CategoryModel::where('code', $code)->first();
+
+        if (!$model) {
+            return null;
+        }
+
+        return $this->mapToEntity($model);
     }
 
-    /** @return array<Category> */
-    public function findByType(CategoryType $type): array
+    public function findByName(string $name): ?Category
     {
-        return CategoryModel::where('type', $type->value)
-            ->get()
-            ->map(fn (CategoryModel $model) => $this->toDomain($model))
-            ->toArray();
+        $model = CategoryModel::where('name', $name)->first();
+
+        if (!$model) {
+            return null;
+        }
+
+        return $this->mapToEntity($model);
     }
 
-    /** @return array<Category> */
-    public function findByStatus(CategoryStatus $status): array
+    public function findAll(
+        ?CategoryType $type = null,
+        ?CategoryId $parentId = null,
+        bool $isOperating = false,
+        bool $isTaxDeductible = false,
+        bool $includeInReports = false,
+        bool $isDefault = false,
+        int $page = 1,
+        int $perPage = 20
+    ): array {
+        $query = CategoryModel::query();
+
+        if ($type) {
+            $query->where('type', $type->value);
+        }
+
+        if ($parentId) {
+            $query->where('parent_id', $parentId->toString());
+        } else {
+            $query->whereNull('parent_id');
+        }
+
+        if ($isOperating) {
+            $query->where('is_operating', true);
+        }
+
+        if ($isTaxDeductible) {
+            $query->where('is_tax_deductible', true);
+        }
+
+        if ($includeInReports) {
+            $query->where('include_in_reports', true);
+        }
+
+        if ($isDefault) {
+            $query->where('is_default', true);
+        }
+
+        $query->orderBy('code');
+
+        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return [
+            'data' => $this->mapCollectionToEntities($paginator->items()),
+            'meta' => [
+                'total' => $paginator->total(),
+                'per_page' => $paginator->perPage(),
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+            ],
+        ];
+    }
+
+    public function findAllByType(CategoryType $type): array
     {
-        return CategoryModel::where('status', $status->value)
-            ->get()
-            ->map(fn (CategoryModel $model) => $this->toDomain($model))
-            ->toArray();
+        $models = CategoryModel::where('type', $type->value)
+            ->orderBy('code')
+            ->get();
+
+        return $this->mapCollectionToEntities($models->all());
     }
 
-    /** @return array<Category> */
-    public function findByParentId(?CategoryId $parentId): array
+    public function findAllRevenue(): array
+    {
+        return $this->findAllByType(CategoryType::REVENUE);
+    }
+
+    public function findAllExpense(): array
+    {
+        return $this->findAllByType(CategoryType::EXPENSE);
+    }
+
+    public function findAllTransfer(): array
+    {
+        return $this->findAllByType(CategoryType::TRANSFER);
+    }
+
+    public function findAllRoot(): array
+    {
+        $models = CategoryModel::whereNull('parent_id')
+            ->orderBy('code')
+            ->get();
+
+        return $this->mapCollectionToEntities($models->all());
+    }
+
+    public function findAllChildren(CategoryId $parentId): array
+    {
+        $models = CategoryModel::where('parent_id', $parentId->toString())
+            ->orderBy('code')
+            ->get();
+
+        return $this->mapCollectionToEntities($models->all());
+    }
+
+    public function findTree(?CategoryType $type = null): array
     {
         $query = CategoryModel::query();
-        
-        if ($parentId === null) {
-            $query->whereNull('parent_id');
-        } else {
-            $query->where('parent_id', $parentId->toString());
+
+        if ($type) {
+            $query->where('type', $type->value);
         }
-        
-        return $query->get()
-            ->map(fn (CategoryModel $model) => $this->toDomain($model))
-            ->toArray();
+
+        $query->whereNull('parent_id')
+            ->orderBy('code')
+            ->with('children');
+
+        $models = $query->get();
+
+        return $this->buildTree($models->all());
     }
 
-    /** @return array<Category> */
-    public function findActiveByType(CategoryType $type): array
+    public function save(Category $category): void
     {
-        return CategoryModel::where('type', $type->value)
-            ->where('status', CategoryStatus::ACTIVE->value)
-            ->get()
-            ->map(fn (CategoryModel $model) => $this->toDomain($model))
-            ->toArray();
+        $data = [
+            'id' => $category->getId()->toString(),
+            'name' => $category->getName(),
+            'type' => $category->getType()->value,
+            'code' => $category->getCode(),
+            'description' => $category->getDescription(),
+            'color' => $category->getColor(),
+            'icon' => $category->getIcon(),
+            'is_operating' => $category->isOperating(),
+            'is_tax_deductible' => $category->isTaxDeductible(),
+            'include_in_reports' => $category->isIncludeInReports(),
+            'is_default' => $category->isDefault(),
+            'parent_id' => $category->getParentId()?->toString(),
+            'created_at' => $category->getCreatedAt(),
+            'updated_at' => $category->getUpdatedAt(),
+        ];
+
+        if ($category->getDeletedAt()) {
+            $data['deleted_at'] = $category->getDeletedAt();
+        }
+
+        CategoryModel::updateOrCreate(['id' => $category->getId()->toString()], $data);
     }
 
-    public function delete(CategoryId $id): void
+    public function delete(Category $category): void
     {
-        CategoryModel::where('id', $id->toString())->delete();
+        $model = CategoryModel::find($category->getId()->toString());
+
+        if ($model) {
+            $model->delete();
+        }
     }
 
-    private function toDomain(CategoryModel $model): Category
+    public function existsWithCode(string $code, ?CategoryId $excludeId = null): bool
+    {
+        $query = CategoryModel::where('code', $code);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId->toString());
+        }
+
+        return $query->exists();
+    }
+
+    public function existsWithName(string $name, ?CategoryId $excludeId = null): bool
+    {
+        $query = CategoryModel::where('name', $name);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId->toString());
+        }
+
+        return $query->exists();
+    }
+
+    public function countByType(CategoryType $type): int
+    {
+        return CategoryModel::where('type', $type->value)->count();
+    }
+
+    public function countByParent(CategoryId $parentId): int
+    {
+        return CategoryModel::where('parent_id', $parentId->toString())->count();
+    }
+
+    public function getDefaultCategories(): array
+    {
+        $models = CategoryModel::where('is_default', true)
+            ->orderBy('type')
+            ->orderBy('code')
+            ->get();
+
+        return $this->mapCollectionToEntities($models->all());
+    }
+
+    private function mapToEntity(CategoryModel $model): Category
     {
         return new Category(
             id: CategoryId::fromString($model->id),
             name: $model->name,
             type: CategoryType::from($model->type),
-            status: CategoryStatus::from($model->status),
+            code: $model->code,
+            description: $model->description,
             color: $model->color,
             icon: $model->icon,
+            isOperating: $model->is_operating,
+            isTaxDeductible: $model->is_tax_deductible,
+            includeInReports: $model->include_in_reports,
+            isDefault: $model->is_default,
             parentId: $model->parent_id ? CategoryId::fromString($model->parent_id) : null,
-            createdAt: $model->created_at,
-            updatedAt: $model->updated_at,
+            createdAt: new DateTimeImmutable($model->created_at),
+            updatedAt: new DateTimeImmutable($model->updated_at),
         );
+    }
+
+    private function mapCollectionToEntities(array $models): array
+    {
+        return array_map(
+            fn (CategoryModel $model) => $this->mapToEntity($model),
+            $models
+        );
+    }
+
+    private function buildTree(array $models): array
+    {
+        $tree = [];
+
+        foreach ($models as $model) {
+            $entity = $this->mapToEntity($model);
+            $children = [];
+
+            if ($model->children) {
+                $children = $this->buildTree($model->children->all());
+            }
+
+            $tree[] = [
+                'category' => $entity,
+                'children' => $children,
+            ];
+        }
+
+        return $tree;
     }
 }

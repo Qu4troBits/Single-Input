@@ -29,13 +29,36 @@ class CategoriesController extends Controller
                 'id' => $category->getId()->toString(),
                 'name' => $category->getName(),
                 'type' => $category->getType()->value,
-                'status' => $category->getStatus()->value,
+                'code' => $category->getCode(),
+                'description' => $category->getDescription(),
                 'color' => $category->getColor(),
                 'icon' => $category->getIcon(),
-                'parent_id' => $category->getParentId()?->toString(),
-                'created_at' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
-                'updated_at' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+                'isOperating' => $category->isOperating(),
+                'isTaxDeductible' => $category->isTaxDeductible(),
+                'includeInReports' => $category->isIncludeInReports(),
+                'isDefault' => $category->isDefault(),
+                'parentId' => $category->getParentId()?->toString(),
+                'createdAt' => $category->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $category->getUpdatedAt()->format('Y-m-d H:i:s'),
+                'archivedAt' => $category->getArchivedAt()?->format('Y-m-d H:i:s'),
             ], $categories),
+            'meta' => [
+                'total' => count($categories),
+                'per_page' => 15,
+                'current_page' => 1,
+                'last_page' => 1,
+                'from' => 1,
+                'to' => count($categories),
+            ],
+            'filters' => [],
+            'categoryTypes' => array_map(fn ($type) => [
+                'value' => $type->value,
+                'label' => $type->label(),
+            ], CategoryType::cases()),
+            'categoryStatuses' => array_map(fn ($status) => [
+                'value' => $status->value,
+                'label' => $status->label(),
+            ], CategoryStatus::cases()),
         ]);
     }
 
@@ -138,5 +161,21 @@ class CategoriesController extends Controller
 
         return redirect()->route('categories.index')
             ->with('success', 'Categoria excluída com sucesso.');
+    }
+
+    public function archive(string $id, DeleteCategoryHandler $handler): RedirectResponse
+    {
+        $handler->archive(CategoryId::fromString($id));
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Categoria arquivada com sucesso.');
+    }
+
+    public function restore(string $id, DeleteCategoryHandler $handler): RedirectResponse
+    {
+        $handler->restore(CategoryId::fromString($id));
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Categoria restaurada com sucesso.');
     }
 }

@@ -37,7 +37,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/{transaction}/mark-as-cancelled', [TransactionsController::class, 'markAsCancelled'])->name('transactions.markAsCancelled');
 
     Route::resource('bank-accounts', \App\Http\Controllers\BankAccountsController::class)->except(['show']);
+    Route::post('/bank-accounts/{bankAccount}/activate', [\App\Http\Controllers\BankAccountsController::class, 'activate'])->name('bank-accounts.activate');
+    Route::post('/bank-accounts/{bankAccount}/deactivate', [\App\Http\Controllers\BankAccountsController::class, 'deactivate'])->name('bank-accounts.deactivate');
+    
     Route::resource('categories', \App\Http\Controllers\CategoriesController::class)->except(['show']);
+    Route::post('/categories/{category}/archive', [\App\Http\Controllers\CategoriesController::class, 'archive'])->name('categories.archive');
+    Route::post('/categories/{category}/restore', [\App\Http\Controllers\CategoriesController::class, 'restore'])->name('categories.restore');
     
     // Relatórios
     Route::prefix('reports')->name('reports.')->group(function () {
@@ -71,5 +76,24 @@ Route::middleware('auth')->group(function () {
         Route::put('/{projectionId}', [\App\Http\Controllers\FinancialProjectionsController::class, 'update'])->name('update');
         Route::delete('/{projectionId}', [\App\Http\Controllers\FinancialProjectionsController::class, 'destroy'])->name('destroy');
         Route::post('/generate', [\App\Http\Controllers\FinancialProjectionsController::class, 'generate'])->name('generate');
+    });
+
+    // DRE - Demonstrativo de Resultados do Exercício
+    Route::prefix('dres')->name('dres.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DreController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\DreController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\DreController::class, 'store'])->name('store');
+        Route::get('/{dre}', [\App\Http\Controllers\DreController::class, 'show'])->name('show');
+        Route::get('/{dre}/edit', [\App\Http\Controllers\DreController::class, 'edit'])->name('edit');
+        Route::put('/{dre}', [\App\Http\Controllers\DreController::class, 'update'])->name('update');
+        Route::delete('/{dre}', [\App\Http\Controllers\DreController::class, 'destroy'])->name('destroy');
+        
+        // Rotas especiais para DRE
+        Route::post('/consolidated', [\App\Http\Controllers\DreController::class, 'generateConsolidated'])->name('generate-consolidated');
+        Route::post('/comparative', [\App\Http\Controllers\DreController::class, 'generateComparative'])->name('generate-comparative');
+        Route::post('/{dre}/export', [\App\Http\Controllers\DreController::class, 'export'])->name('export');
+        Route::get('/{dre}/download-export', [\App\Http\Controllers\DreController::class, 'downloadExport'])->name('download-export');
+        Route::get('/standard-structure', [\App\Http\Controllers\DreController::class, 'getStandardStructure'])->name('standard-structure');
+        Route::get('/{dre}/ratios', [\App\Http\Controllers\DreController::class, 'getRatios'])->name('ratios');
     });
 });

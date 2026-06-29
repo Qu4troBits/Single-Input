@@ -30,24 +30,50 @@ class BankAccountsController extends Controller
                 'id' => $bankAccount->getId()->toString(),
                 'name' => $bankAccount->getName(),
                 'type' => $bankAccount->getType()->value,
+                'bankCode' => $bankAccount->getBankCode(),
+                'bankName' => $bankAccount->getBankName(),
+                'agencyNumber' => $bankAccount->getAgencyNumber(),
+                'accountNumber' => $bankAccount->getAccountNumber(),
+                'accountDigit' => $bankAccount->getAccountDigit(),
+                'initialBalance' => $bankAccount->getInitialBalance()->toNumeric(),
+                'currentBalance' => $bankAccount->getCurrentBalance()->toNumeric(),
                 'status' => $bankAccount->getStatus()->value,
-                'bank_code' => $bankAccount->getBankCode(),
-                'agency' => $bankAccount->getAgency(),
-                'account_number' => $bankAccount->getAccountNumber(),
-                'account_digit' => $bankAccount->getAccountDigit(),
                 'description' => $bankAccount->getDescription(),
-                'balance' => $bankAccount->getBalance()->toNumeric(),
-                'initial_balance' => $bankAccount->getInitialBalance()->toNumeric(),
-                'created_at' => $bankAccount->getCreatedAt()->format('Y-m-d H:i:s'),
-                'updated_at' => $bankAccount->getUpdatedAt()->format('Y-m-d H:i:s'),
+                'color' => $bankAccount->getColor(),
+                'icon' => $bankAccount->getIcon(),
+                'includeInDashboard' => $bankAccount->isIncludeInDashboard(),
+                'includeInReports' => $bankAccount->isIncludeInReports(),
+                'isDefault' => $bankAccount->isDefault(),
+                'createdAt' => $bankAccount->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $bankAccount->getUpdatedAt()->format('Y-m-d H:i:s'),
             ], $bankAccounts),
+            'meta' => [
+                'total' => count($bankAccounts),
+                'per_page' => 15,
+                'current_page' => 1,
+                'last_page' => 1,
+                'from' => 1,
+                'to' => count($bankAccounts),
+            ],
+            'filters' => [],
+            'bankAccountTypes' => array_map(fn ($type) => [
+                'value' => $type->value,
+                'label' => $type->label(),
+            ], BankAccountType::cases()),
+            'bankAccountStatuses' => array_map(fn ($status) => [
+                'value' => $status->value,
+                'label' => $status->label(),
+            ], BankAccountStatus::cases()),
         ]);
     }
 
     public function create(): Response
     {
         return Inertia::render('BankAccounts/Create', [
-            'types' => array_map(fn ($type) => $type->value, BankAccountType::cases()),
+            'bankAccountTypes' => array_map(fn ($type) => [
+                'value' => $type->value,
+                'label' => $type->label(),
+            ], BankAccountType::cases()),
         ]);
     }
 
@@ -56,23 +82,35 @@ class BankAccountsController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:' . implode(',', array_map(fn ($type) => $type->value, BankAccountType::cases())),
-            'bank_code' => 'nullable|string|max:10',
-            'agency' => 'nullable|string|max:20',
-            'account_number' => 'nullable|string|max:30',
+            'bank_code' => 'required|string|max:10',
+            'bank_name' => 'required|string|max:255',
+            'agency_number' => 'required|string|max:20',
+            'account_number' => 'required|string|max:30',
             'account_digit' => 'nullable|string|max:2',
-            'description' => 'nullable|string',
-            'initial_balance' => 'required|numeric',
+            'initial_balance' => 'required|string',
+            'description' => 'nullable|string|max:1000',
+            'color' => 'nullable|string|regex:/^#[0-9A-F]{6}$/i',
+            'icon' => 'nullable|string|max:50',
+            'include_in_dashboard' => 'boolean',
+            'include_in_reports' => 'boolean',
+            'is_default' => 'boolean',
         ]);
 
         $bankAccountId = $handler->handle(new CreateBankAccountData(
             name: $validated['name'],
             type: BankAccountType::from($validated['type']),
-            bankCode: $validated['bank_code'] ?? null,
-            agency: $validated['agency'] ?? null,
-            accountNumber: $validated['account_number'] ?? null,
+            bankCode: $validated['bank_code'],
+            bankName: $validated['bank_name'],
+            agencyNumber: $validated['agency_number'],
+            accountNumber: $validated['account_number'],
             accountDigit: $validated['account_digit'] ?? null,
-            description: $validated['description'] ?? null,
             initialBalance: Money::of($validated['initial_balance']),
+            description: $validated['description'] ?? null,
+            color: $validated['color'] ?? null,
+            icon: $validated['icon'] ?? null,
+            includeInDashboard: $validated['include_in_dashboard'] ?? true,
+            includeInReports: $validated['include_in_reports'] ?? true,
+            isDefault: $validated['is_default'] ?? false,
         ));
 
         return redirect()->route('bank-accounts.index')
@@ -92,15 +130,31 @@ class BankAccountsController extends Controller
                 'id' => $bankAccount->getId()->toString(),
                 'name' => $bankAccount->getName(),
                 'type' => $bankAccount->getType()->value,
+                'bankCode' => $bankAccount->getBankCode(),
+                'bankName' => $bankAccount->getBankName(),
+                'agencyNumber' => $bankAccount->getAgencyNumber(),
+                'accountNumber' => $bankAccount->getAccountNumber(),
+                'accountDigit' => $bankAccount->getAccountDigit(),
+                'initialBalance' => $bankAccount->getInitialBalance()->toNumeric(),
+                'currentBalance' => $bankAccount->getCurrentBalance()->toNumeric(),
                 'status' => $bankAccount->getStatus()->value,
-                'bank_code' => $bankAccount->getBankCode(),
-                'agency' => $bankAccount->getAgency(),
-                'account_number' => $bankAccount->getAccountNumber(),
-                'account_digit' => $bankAccount->getAccountDigit(),
                 'description' => $bankAccount->getDescription(),
+                'color' => $bankAccount->getColor(),
+                'icon' => $bankAccount->getIcon(),
+                'includeInDashboard' => $bankAccount->isIncludeInDashboard(),
+                'includeInReports' => $bankAccount->isIncludeInReports(),
+                'isDefault' => $bankAccount->isDefault(),
+                'createdAt' => $bankAccount->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updatedAt' => $bankAccount->getUpdatedAt()->format('Y-m-d H:i:s'),
             ],
-            'types' => array_map(fn ($type) => $type->value, BankAccountType::cases()),
-            'statuses' => array_map(fn ($status) => $status->value, BankAccountStatus::cases()),
+            'bankAccountTypes' => array_map(fn ($type) => [
+                'value' => $type->value,
+                'label' => $type->label(),
+            ], BankAccountType::cases()),
+            'bankAccountStatuses' => array_map(fn ($status) => [
+                'value' => $status->value,
+                'label' => $status->label(),
+            ], BankAccountStatus::cases()),
         ]);
     }
 
@@ -109,27 +163,35 @@ class BankAccountsController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:' . implode(',', array_map(fn ($type) => $type->value, BankAccountType::cases())),
-            'status' => 'required|in:' . implode(',', array_map(fn ($status) => $status->value, BankAccountStatus::cases())),
-            'bank_code' => 'nullable|string|max:10',
-            'agency' => 'nullable|string|max:20',
-            'account_number' => 'nullable|string|max:30',
+            'bank_code' => 'required|string|max:10',
+            'bank_name' => 'required|string|max:255',
+            'agency_number' => 'required|string|max:20',
+            'account_number' => 'required|string|max:30',
             'account_digit' => 'nullable|string|max:2',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
+            'color' => 'nullable|string|regex:/^#[0-9A-F]{6}$/i',
+            'icon' => 'nullable|string|max:50',
+            'include_in_dashboard' => 'boolean',
+            'include_in_reports' => 'boolean',
+            'is_default' => 'boolean',
         ]);
 
-        $handler->handle(
-            BankAccountId::fromString($id),
-            new UpdateBankAccountData(
-                name: $validated['name'],
-                type: BankAccountType::from($validated['type']),
-                status: BankAccountStatus::from($validated['status']),
-                bankCode: $validated['bank_code'] ?? null,
-                agency: $validated['agency'] ?? null,
-                accountNumber: $validated['account_number'] ?? null,
-                accountDigit: $validated['account_digit'] ?? null,
-                description: $validated['description'] ?? null,
-            )
-        );
+        $handler->handle(new UpdateBankAccountData(
+            id: BankAccountId::fromString($id),
+            name: $validated['name'],
+            type: BankAccountType::from($validated['type']),
+            bankCode: $validated['bank_code'],
+            bankName: $validated['bank_name'],
+            agencyNumber: $validated['agency_number'],
+            accountNumber: $validated['account_number'],
+            accountDigit: $validated['account_digit'] ?? null,
+            description: $validated['description'] ?? null,
+            color: $validated['color'] ?? null,
+            icon: $validated['icon'] ?? null,
+            includeInDashboard: $validated['include_in_dashboard'] ?? true,
+            includeInReports: $validated['include_in_reports'] ?? true,
+            isDefault: $validated['is_default'] ?? false,
+        ));
 
         return redirect()->route('bank-accounts.index')
             ->with('success', 'Conta bancária atualizada com sucesso.');
@@ -141,5 +203,21 @@ class BankAccountsController extends Controller
 
         return redirect()->route('bank-accounts.index')
             ->with('success', 'Conta bancária excluída com sucesso.');
+    }
+
+    public function activate(string $id, DeleteBankAccountHandler $handler): RedirectResponse
+    {
+        $handler->activate(BankAccountId::fromString($id));
+
+        return redirect()->route('bank-accounts.index')
+            ->with('success', 'Conta bancária ativada com sucesso.');
+    }
+
+    public function deactivate(string $id, DeleteBankAccountHandler $handler): RedirectResponse
+    {
+        $handler->deactivate(BankAccountId::fromString($id));
+
+        return redirect()->route('bank-accounts.index')
+            ->with('success', 'Conta bancária desativada com sucesso.');
     }
 }

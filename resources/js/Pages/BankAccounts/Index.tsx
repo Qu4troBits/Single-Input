@@ -1,64 +1,132 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
-import Layout from '@/Layouts/Layout';
+import React, { useState, useEffect } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { PageProps } from '@/types';
 import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
-import { Badge } from '@/Components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
-import { formatBRL } from '@/Utils/formatCurrency';
+import { Badge } from '@/Components/ui/badge';
+import { formatBRL } from '@/Types/Money';
+import { BankAccountType, BankAccountStatus } from '@/Types/BankAccount';
 
 interface BankAccount {
     id: string;
     name: string;
-    type: string;
-    status: string;
-    bank_code: string | null;
-    agency: string | null;
-    account_number: string | null;
-    account_digit: string | null;
+    type: BankAccountType;
+    bankCode: string;
+    bankName: string;
+    agencyNumber: string;
+    accountNumber: string;
+    accountDigit: string | null;
+    initialBalance: string;
+    currentBalance: string;
+    status: BankAccountStatus;
     description: string | null;
-    balance: string;
-    initial_balance: string;
-    created_at: string;
-    updated_at: string;
+    color: string | null;
+    icon: string | null;
+    includeInDashboard: boolean;
+    includeInReports: boolean;
+    isDefault: boolean;
+    createdAt: string;
+    updatedAt: string;
 }
 
-interface Props {
+interface Props extends PageProps {
     bankAccounts: BankAccount[];
+    meta: {
+        total: number;
+        per_page: number;
+        current_page: number;
+        last_page: number;
+        from: number;
+        to: number;
+    };
+    filters: {
+        type?: string;
+        status?: string;
+        include_in_dashboard?: boolean;
+        include_in_reports?: boolean;
+        is_default?: boolean;
+    };
+    bankAccountTypes: Array<{ value: string; label: string }>;
+    bankAccountStatuses: Array<{ value: string; label: string }>;
 }
 
-export default function Index({ bankAccounts }: Props) {
-    const getStatusColor = (status: string) => {
+export default function BankAccountIndex({ 
+    bankAccounts, 
+    meta, 
+    filters, 
+    bankAccountTypes, 
+    bankAccountStatuses 
+}: Props) {
+    const [localFilters, setLocalFilters] = useState({
+        type: filters.type || '',
+        status: filters.status || '',
+        include_in_dashboard: filters.include_in_dashboard || false,
+        include_in_reports: filters.include_in_reports || false,
+        is_default: filters.is_default || false,
+    });
+    const [isFiltering, setIsFiltering] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (isFiltering) {
+                router.get(route('bank-accounts.index'), localFilters, {
+                    preserveState: true,
+                    preserveScroll: true,
+                });
+                setIsFiltering(false);
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [localFilters, isFiltering]);
+
+    const handleFilterChange = (key: keyof typeof localFilters, value: any) => {
+        setLocalFilters(prev => ({ ...prev, [key]: value }));
+        setIsFiltering(true);
+    };
+
+    const getStatusBadgeVariant = (status: BankAccountStatus) => {
         switch (status) {
-            case 'active': return 'bg-green-100 text-green-800';
-            case 'inactive': return 'bg-yellow-100 text-yellow-800';
-            case 'closed': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case BankAccountStatus.ACTIVE:
+                return 'success';
+            case BankAccountStatus.INACTIVE:
+                return 'secondary';
+            case BankAccountStatus.CLOSED:
+                return 'destructive';
+            case BankAccountStatus.BLOCKED:
+                return 'warning';
+            default:
+                return 'default';
         }
     };
 
-    const getTypeLabel = (type: string) => {
-        switch (type) {
-            case 'checking': return 'Conta Corrente';
-            case 'savings': return 'Poupança';
-            case 'investment': return 'Investimento';
-            case 'credit_card': return 'Cartão de Crédito';
-            case 'wallet': return 'Carteira';
-            case 'other': return 'Outro';
-            default: return type;
-        }
+    const getTypeLabel = (type: BankAccountType) => {
+        return bankAccountTypes.find(t => t.value === type)?.label || type;
+    };
+
+    const getStatusLabel = (status: BankAccountStatus) => {
+        return bankAccountStatuses.find(s => s.value === status)?.label || status;
+    };
+
+    const getFullAccountNumber = (account: BankAccount) => {
+        return account.accountNumber + (account.accountDigit ? '-' + account.accountDigit : '');
     };
 
     return (
-        <Layout>
+        <AuthenticatedLayout>
             <Head title="Contas Bancárias" />
 
-            <div className="space-y-6">
-                <div className="flex items-center justify-between">
+            <div className="container mx-auto py-6">
+                <div className="flex items-center justify-between mb-6">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Contas Bancárias</h1>
                         <p className="text-muted-foreground">
-                            Gerencie suas contas bancárias e carteiras
+                            Gerencie suas contas bancárias e acompanhe os saldos
                         </p>
                     </div>
                     <Link href={route('bank-accounts.create')}>
@@ -68,99 +136,239 @@ export default function Index({ bankAccounts }: Props) {
                     </Link>
                 </div>
 
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle>Filtros</CardTitle>
+                        <CardDescription>
+                            Filtre as contas bancárias por tipo, status e outras características
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="type">Tipo</Label>
+                                <Select
+                                    value={localFilters.type}
+                                    onValueChange={(value) => handleFilterChange('type', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos os tipos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">Todos os tipos</SelectItem>
+                                        {bankAccountTypes.map((type) => (
+                                            <SelectItem key={type.value} value={type.value}>
+                                                {type.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="status">Status</Label>
+                                <Select
+                                    value={localFilters.status}
+                                    onValueChange={(value) => handleFilterChange('status', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos os status" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">Todos os status</SelectItem>
+                                        {bankAccountStatuses.map((status) => (
+                                            <SelectItem key={status.value} value={status.value}>
+                                                {status.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="include_in_dashboard">Dashboard</Label>
+                                <Select
+                                    value={localFilters.include_in_dashboard ? 'true' : 'false'}
+                                    onValueChange={(value) => handleFilterChange('include_in_dashboard', value === 'true')}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Todos</SelectItem>
+                                        <SelectItem value="true">Apenas no Dashboard</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="include_in_reports">Relatórios</Label>
+                                <Select
+                                    value={localFilters.include_in_reports ? 'true' : 'false'}
+                                    onValueChange={(value) => handleFilterChange('include_in_reports', value === 'true')}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Todos</SelectItem>
+                                        <SelectItem value="true">Apenas em Relatórios</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="is_default">Padrão</Label>
+                                <Select
+                                    value={localFilters.is_default ? 'true' : 'false'}
+                                    onValueChange={(value) => handleFilterChange('is_default', value === 'true')}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Todos" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="false">Todos</SelectItem>
+                                        <SelectItem value="true">Apenas Padrão</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Contas Bancárias</CardTitle>
                         <CardDescription>
-                            Lista de todas as contas bancárias cadastradas
+                            Total de {meta.total} contas bancárias
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {bankAccounts.length === 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Nome</TableHead>
+                                    <TableHead>Banco</TableHead>
+                                    <TableHead>Agência/Conta</TableHead>
+                                    <TableHead>Tipo</TableHead>
+                                    <TableHead>Saldo Atual</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Ações</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {bankAccounts.map((account) => (
+                                    <TableRow key={account.id}>
+                                        <TableCell className="font-medium">
+                                            <div className="flex items-center gap-2">
+                                                {account.icon && (
+                                                    <span className="text-lg">{account.icon}</span>
+                                                )}
+                                                {account.name}
+                                                {account.isDefault && (
+                                                    <Badge variant="outline" className="ml-2">
+                                                        Padrão
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">{account.bankName}</span>
+                                                <span className="text-sm text-muted-foreground">
+                                                    Código: {account.bankCode}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span>Agência: {account.agencyNumber}</span>
+                                                <span>Conta: {getFullAccountNumber(account)}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="outline">
+                                                {getTypeLabel(account.type)}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="font-medium">
+                                            <div className="flex flex-col">
+                                                <span className={parseFloat(account.currentBalance) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                                    {formatBRL(account.currentBalance)}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground">
+                                                    Inicial: {formatBRL(account.initialBalance)}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={getStatusBadgeVariant(account.status)}>
+                                                {getStatusLabel(account.status)}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Link href={route('bank-accounts.show', account.id)}>
+                                                    <Button variant="ghost" size="sm">
+                                                        Ver
+                                                    </Button>
+                                                </Link>
+                                                <Link href={route('bank-accounts.edit', account.id)}>
+                                                    <Button variant="ghost" size="sm">
+                                                        Editar
+                                                    </Button>
+                                                </Link>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+
+                        {meta.total > 0 && (
+                            <div className="flex items-center justify-between mt-4">
+                                <div className="text-sm text-muted-foreground">
+                                    Mostrando {meta.from} a {meta.to} de {meta.total} contas
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleFilterChange('type', localFilters.type)}
+                                        disabled={meta.current_page === 1}
+                                    >
+                                        Anterior
+                                    </Button>
+                                    <span className="text-sm">
+                                        Página {meta.current_page} de {meta.last_page}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleFilterChange('type', localFilters.type)}
+                                        disabled={meta.current_page === meta.last_page}
+                                    >
+                                        Próxima
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+
+                        {bankAccounts.length === 0 && (
                             <div className="text-center py-12">
-                                <p className="text-muted-foreground">
-                                    Nenhuma conta bancária cadastrada ainda.
-                                </p>
-                                <Link href={route('bank-accounts.create')} className="mt-4 inline-block">
-                                    <Button variant="outline">
+                                <div className="text-muted-foreground mb-4">
+                                    Nenhuma conta bancária encontrada
+                                </div>
+                                <Link href={route('bank-accounts.create')}>
+                                    <Button>
                                         Criar Primeira Conta
                                     </Button>
                                 </Link>
                             </div>
-                        ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nome</TableHead>
-                                        <TableHead>Tipo</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Agência/Conta</TableHead>
-                                        <TableHead>Saldo</TableHead>
-                                        <TableHead>Criado em</TableHead>
-                                        <TableHead className="text-right">Ações</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {bankAccounts.map((account) => (
-                                        <TableRow key={account.id}>
-                                            <TableCell className="font-medium">
-                                                {account.name}
-                                                {account.description && (
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {account.description}
-                                                    </p>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>{getTypeLabel(account.type)}</TableCell>
-                                            <TableCell>
-                                                <Badge className={getStatusColor(account.status)}>
-                                                    {account.status === 'active' ? 'Ativo' :
-                                                     account.status === 'inactive' ? 'Inativo' : 'Fechado'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {account.bank_code && (
-                                                    <span className="text-sm">
-                                                        {account.bank_code} - {account.agency || 'N/A'} / {account.account_number || 'N/A'}{account.account_digit ? `-${account.account_digit}` : ''}
-                                                    </span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="font-medium">
-                                                {formatBRL(account.balance)}
-                                            </TableCell>
-                                            <TableCell>
-                                                {new Date(account.created_at).toLocaleDateString('pt-BR')}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end space-x-2">
-                                                    <Link href={route('bank-accounts.edit', account.id)}>
-                                                        <Button variant="outline" size="sm">
-                                                            Editar
-                                                        </Button>
-                                                    </Link>
-                                                    <Link
-                                                        href={route('bank-accounts.destroy', account.id)}
-                                                        method="delete"
-                                                        as="button"
-                                                        className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
-                                                        onClick={(e) => {
-                                                            if (!confirm('Tem certeza que deseja excluir esta conta bancária?')) {
-                                                                e.preventDefault();
-                                                            }
-                                                        }}
-                                                    >
-                                                        Excluir
-                                                    </Link>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
                         )}
                     </CardContent>
                 </Card>
             </div>
-        </Layout>
+        </AuthenticatedLayout>
     );
 }
