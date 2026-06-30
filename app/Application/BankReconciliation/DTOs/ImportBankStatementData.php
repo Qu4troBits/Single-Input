@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\BankReconciliation\Data;
+namespace App\Application\BankReconciliation\DTOs;
 
 final readonly class ImportBankStatementData
 {

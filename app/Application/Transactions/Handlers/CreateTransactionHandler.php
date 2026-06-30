@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Transactions\Handlers;
 
-use App\Application\Transactions\Data\CreateTransactionData;
+use App\Application\Transactions\DTOs\CreateTransactionData;
 use App\Domain\Transactions\Transaction;
 use App\Domain\Transactions\TransactionId;
 use App\Domain\Transactions\TransactionRepositoryInterface;

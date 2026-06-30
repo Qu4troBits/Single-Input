@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Reports\Handlers;
 
-use App\Application\Reports\Data\GenerateDreData;
+use App\Application\Reports\DTOs\GenerateDreData;
 use App\Domain\Reports\Dre;
 use App\Domain\Reports\Services\DreGenerator;
 use App\Domain\Reports\ValueObjects\DrePeriod;

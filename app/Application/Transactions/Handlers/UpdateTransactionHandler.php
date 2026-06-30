@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Transactions\Handlers;
 
-use App\Application\Transactions\Data\UpdateTransactionData;
+use App\Application\Transactions\DTOs\UpdateTransactionData;
 use App\Domain\Transactions\TransactionId;
 use App\Domain\Transactions\TransactionRepositoryInterface;
 use RuntimeException;

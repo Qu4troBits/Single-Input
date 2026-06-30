@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\BankReconciliation\Handlers;
 
-use App\Application\BankReconciliation\Data\ReconcileBankAccountData;
+use App\Application\BankReconciliation\DTOs\ReconcileBankAccountData;
 use App\Domain\BankReconciliation\ReconciliationItem;
 use App\Domain\BankReconciliation\ReconciliationRepositoryInterface;
 use App\Domain\Shared\Money;

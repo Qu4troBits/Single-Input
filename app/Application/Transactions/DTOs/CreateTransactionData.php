@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Transactions\Data;
+namespace App\Application\Transactions\DTOs;
 
 use App\Domain\BankAccounts\BankAccountId;
 use App\Domain\Categories\CategoryId;

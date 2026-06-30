@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Reports\Data;
+namespace App\Application\Reports\DTOs;
 
 final readonly class ExportDreData
 {

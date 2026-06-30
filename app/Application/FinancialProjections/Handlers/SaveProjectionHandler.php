@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\FinancialProjections\Handlers;
 
-use App\Application\FinancialProjections\Data\SaveProjectionData;
+use App\Application\FinancialProjections\DTOs\SaveProjectionData;
 use App\Domain\FinancialProjections\FinancialProjection;
 use App\Domain\FinancialProjections\FinancialProjectionRepositoryInterface;
 use App\Domain\FinancialProjections\ProjectionItem;

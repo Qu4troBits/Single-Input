@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\FinancialProjections\Data;
+namespace App\Application\FinancialProjections\DTOs;
 
 use App\Domain\FinancialProjections\ProjectionType;
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\FinancialProjections\Handlers;
 
-use App\Application\FinancialProjections\Data\GenerateProjectionData;
+use App\Application\FinancialProjections\DTOs\GenerateProjectionData;
 use App\Domain\FinancialProjections\FinancialProjection;
 use App\Domain\FinancialProjections\PeriodType;
 use App\Domain\FinancialProjections\ProjectionPeriod;

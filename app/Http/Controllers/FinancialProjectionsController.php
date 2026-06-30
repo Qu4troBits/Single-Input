@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\FinancialProjections\Data\GenerateProjectionData;
-use App\Application\FinancialProjections\Data\SaveProjectionData;
+use App\Application\FinancialProjections\DTOs\GenerateProjectionData;
+use App\Application\FinancialProjections\DTOs\SaveProjectionData;
 use App\Application\FinancialProjections\Handlers\GenerateProjectionHandler;
 use App\Application\FinancialProjections\Handlers\SaveProjectionHandler;
 use App\Domain\FinancialProjections\FinancialProjectionRepositoryInterface;

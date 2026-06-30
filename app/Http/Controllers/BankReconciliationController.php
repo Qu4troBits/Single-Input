@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\BankReconciliation\Data\ImportBankStatementData;
-use App\Application\BankReconciliation\Data\ReconcileBankAccountData;
+use App\Application\BankReconciliation\DTOs\ImportBankStatementData;
+use App\Application\BankReconciliation\DTOs\ReconcileBankAccountData;
 use App\Application\BankReconciliation\Handlers\ImportBankStatementHandler;
 use App\Application\BankReconciliation\Handlers\ReconcileBankAccountHandler;
 use App\Domain\BankReconciliation\ReconciliationRepositoryInterface;

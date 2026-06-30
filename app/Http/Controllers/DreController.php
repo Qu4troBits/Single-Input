@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\Reports\Data\GenerateDreData;
-use App\Application\Reports\Data\ExportDreData;
+use App\Application\Reports\DTOs\GenerateDreData;
+use App\Application\Reports\DTOs\ExportDreData;
 use App\Application\Reports\Handlers\GenerateDreHandler;
 use App\Domain\Reports\Dre;
 use App\Domain\Reports\DreRepositoryInterface;
