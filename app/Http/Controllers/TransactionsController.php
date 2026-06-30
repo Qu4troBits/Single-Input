@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\Transactions\Data\CreateTransactionData;
-use App\Application\Transactions\Data\UpdateTransactionData;
+use App\Application\Transactions\DTOs\CreateTransactionData;
+use App\Application\Transactions\DTOs\UpdateTransactionData;
 use App\Application\Transactions\Handlers\CreateTransactionHandler;
 use App\Application\Transactions\Handlers\DeleteTransactionHandler;
 use App\Application\Transactions\Handlers\MarkTransactionAsCancelledHandler;
 use App\Application\Transactions\Handlers\MarkTransactionAsPaidHandler;
 use App\Application\Transactions\Handlers\UpdateTransactionHandler;
 use App\Domain\BankAccounts\BankAccountId;
-use App\Domain\BankAccounts\BankAccountRepositoryInterface;
+use App\Domain\BankAccounts\Repositories\BankAccountRepositoryInterface;
 use App\Domain\Categories\CategoryId;
-use App\Domain\Categories\CategoryRepositoryInterface;
+use App\Domain\Categories\Repositories\CategoryRepositoryInterface;
 use App\Domain\Shared\Money;
 use App\Domain\Transactions\TransactionDirection;
 use App\Domain\Transactions\TransactionId;

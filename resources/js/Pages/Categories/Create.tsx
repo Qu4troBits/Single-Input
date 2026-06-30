@@ -22,8 +22,14 @@ export default function Create({ types, categories }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         type: '',
+        code: '',
+        description: '',
         color: '',
         icon: '',
+        is_operating: true,
+        is_tax_deductible: false,
+        include_in_reports: true,
+        is_default: false,
         parent_id: '',
     });
 
@@ -102,6 +108,33 @@ export default function Create({ types, categories }: Props) {
                                 </div>
 
                                 <div className="space-y-2">
+                                    <Label htmlFor="code">Código *</Label>
+                                    <Input
+                                        id="code"
+                                        value={data.code}
+                                        onChange={(e) => setData('code', e.target.value)}
+                                        placeholder="Ex: ALIM001"
+                                        required
+                                    />
+                                    {errors.code && (
+                                        <p className="text-sm text-red-500">{errors.code}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="description">Descrição</Label>
+                                    <Input
+                                        id="description"
+                                        value={data.description}
+                                        onChange={(e) => setData('description', e.target.value)}
+                                        placeholder="Ex: Gastos com alimentação"
+                                    />
+                                    {errors.description && (
+                                        <p className="text-sm text-red-500">{errors.description}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
                                     <Label htmlFor="color">Cor</Label>
                                     <Input
                                         id="color"
@@ -126,6 +159,78 @@ export default function Create({ types, categories }: Props) {
                                     />
                                     {errors.icon && (
                                         <p className="text-sm text-red-500">{errors.icon}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="is_operating"
+                                            checked={data.is_operating}
+                                            onChange={(e) => setData('is_operating', e.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                        <Label htmlFor="is_operating" className="cursor-pointer">
+                                            Categoria Operacional
+                                        </Label>
+                                    </div>
+                                    {errors.is_operating && (
+                                        <p className="text-sm text-red-500">{errors.is_operating}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="is_tax_deductible"
+                                            checked={data.is_tax_deductible}
+                                            onChange={(e) => setData('is_tax_deductible', e.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                        <Label htmlFor="is_tax_deductible" className="cursor-pointer">
+                                            Dedutível para Impostos
+                                        </Label>
+                                    </div>
+                                    {errors.is_tax_deductible && (
+                                        <p className="text-sm text-red-500">{errors.is_tax_deductible}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="include_in_reports"
+                                            checked={data.include_in_reports}
+                                            onChange={(e) => setData('include_in_reports', e.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                        <Label htmlFor="include_in_reports" className="cursor-pointer">
+                                            Incluir em Relatórios
+                                        </Label>
+                                    </div>
+                                    {errors.include_in_reports && (
+                                        <p className="text-sm text-red-500">{errors.include_in_reports}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="is_default"
+                                            checked={data.is_default}
+                                            onChange={(e) => setData('is_default', e.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                        <Label htmlFor="is_default" className="cursor-pointer">
+                                            Categoria Padrão
+                                        </Label>
+                                    </div>
+                                    {errors.is_default && (
+                                        <p className="text-sm text-red-500">{errors.is_default}</p>
                                     )}
                                 </div>
 

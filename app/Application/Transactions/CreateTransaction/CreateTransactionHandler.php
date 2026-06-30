@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Transactions\CreateTransaction;
 
-use App\Domain\Finance\Money;
+use App\Domain\Shared\Money;
 use App\Domain\Transactions\TransactionDirection;
 use App\Domain\Transactions\TransactionRepositoryInterface;
 use App\Domain\Transactions\TransactionStatus;

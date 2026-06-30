@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\Categories;
 
-use App\Application\Categories\Data\CreateCategoryData;
+use App\Application\Categories\DTOs\CreateCategoryData;
 use App\Application\Categories\Handlers\CreateCategoryHandler;
 use App\Domain\Categories\CategoryId;
-use App\Domain\Categories\CategoryRepositoryInterface;
+use App\Domain\Categories\Repositories\CategoryRepositoryInterface;
 use App\Domain\Categories\CategoryType;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;

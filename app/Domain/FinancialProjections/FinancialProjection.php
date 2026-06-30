@@ -82,7 +82,7 @@ final class FinancialProjection
             'category_id' => $this->categoryId,
             'scenario' => $this->scenario,
             'items' => array_map(fn($item) => $item->toArray(), $this->items),
-            'total' => $this->getTotal()->getAmount(),
+            'total' => $this->getTotal()->toNumeric(),
         ];
     }
 }

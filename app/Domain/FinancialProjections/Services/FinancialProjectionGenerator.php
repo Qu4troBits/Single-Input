@@ -133,8 +133,8 @@ final readonly class FinancialProjectionGenerator
             $totalAmount = $totalAmount->add(Money::of($item['amount']));
         }
         
-        $averageAmount = $totalAmount->divide(count($historicalData));
-        $projectedAmount = $averageAmount->multiply($growthFactor);
+        $averageAmount = $totalAmount->divide((string) count($historicalData));
+        $projectedAmount = $averageAmount->multiply((string) $growthFactor);
 
         // Criar item projetado
         $items[] = new ProjectionItem(

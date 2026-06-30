@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Shared;
 
 use InvalidArgumentException;
+use NumberFormatter;
 
 final readonly class Money
 {
@@ -16,7 +17,15 @@ final readonly class Money
             throw new InvalidArgumentException('Invalid money format.');
         }
 
-        $this->amount = $amount;
+        // Normaliza para sempre ter 2 casas decimais
+        if (str_contains($amount, '.')) {
+            $parts = explode('.', $amount);
+            $integer = $parts[0];
+            $decimal = str_pad($parts[1] ?? '', 2, '0');
+            $this->amount = $integer . '.' . $decimal;
+        } else {
+            $this->amount = $amount . '.00';
+        }
     }
 
     public static function of(string $amount): self
@@ -95,6 +104,17 @@ final readonly class Money
     public function toNumeric(): string
     {
         return $this->amount;
+    }
+
+    public function getAmount(): string
+    {
+        return $this->amount;
+    }
+
+    public function format(string $locale = 'pt_BR', string $currency = 'BRL'): string
+    {
+        $formatter = new \NumberFormatter($locale, \NumberFormatter::CURRENCY);
+        return $formatter->formatCurrency((float) $this->amount, $currency);
     }
 
     public function __toString(): string

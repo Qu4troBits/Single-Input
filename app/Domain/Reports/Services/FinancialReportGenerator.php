@@ -9,7 +9,7 @@ use App\Domain\Reports\FinancialReportItem;
 use App\Domain\Reports\ReportPeriod;
 use App\Domain\Shared\Money;
 use App\Domain\Transactions\TransactionRepositoryInterface;
-use App\Domain\Categories\CategoryRepositoryInterface;
+use App\Domain\Categories\Repositories\CategoryRepositoryInterface;
 
 final readonly class FinancialReportGenerator
 {

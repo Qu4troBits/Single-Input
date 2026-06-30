@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Application\BankAccounts;
 
-use App\Application\BankAccounts\Data\CreateBankAccountData;
+use App\Application\BankAccounts\DTOs\CreateBankAccountData;
 use App\Application\BankAccounts\Handlers\CreateBankAccountHandler;
-use App\Domain\BankAccounts\BankAccountRepositoryInterface;
-use App\Domain\BankAccounts\BankAccountType;
+use App\Domain\BankAccounts\Repositories\BankAccountRepositoryInterface;
+use App\Domain\BankAccounts\ValueObjects\BankAccountType;
 use App\Domain\Shared\Money;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,7 +31,7 @@ final class CreateBankAccountHandlerTest extends TestCase
             name: 'Conta Corrente',
             type: BankAccountType::CHECKING,
             bankCode: '001',
-            agency: '1234',
+            agencyNumber: '1234',
             accountNumber: '567890',
             accountDigit: '1',
             description: 'Conta principal',
@@ -45,7 +45,7 @@ final class CreateBankAccountHandlerTest extends TestCase
                 return $bankAccount->getName() === $data->name
                     && $bankAccount->getType() === $data->type
                     && $bankAccount->getBankCode() === $data->bankCode
-                    && $bankAccount->getAgency() === $data->agency
+                    && $bankAccount->getAgency() === $data->agencyNumber
                     && $bankAccount->getAccountNumber() === $data->accountNumber
                     && $bankAccount->getAccountDigit() === $data->accountDigit
                     && $bankAccount->getDescription() === $data->description
@@ -63,7 +63,7 @@ final class CreateBankAccountHandlerTest extends TestCase
             name: 'Carteira',
             type: BankAccountType::WALLET,
             bankCode: null,
-            agency: null,
+            agencyNumber: null,
             accountNumber: null,
             accountDigit: null,
             description: null,
@@ -112,7 +112,7 @@ final class CreateBankAccountHandlerTest extends TestCase
                 name: "Account {$type->value}",
                 type: $type,
                 bankCode: null,
-                agency: null,
+                agencyNumber: null,
                 accountNumber: null,
                 accountDigit: null,
                 description: null,

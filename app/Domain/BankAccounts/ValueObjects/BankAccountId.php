@@ -6,7 +6,7 @@ namespace App\Domain\BankAccounts\ValueObjects;
 
 use App\Domain\Shared\UuidIdentifier;
 
-final class BankAccountId extends UuidIdentifier
+final readonly class BankAccountId extends UuidIdentifier
 {
     public static function getPrefix(): string
     {

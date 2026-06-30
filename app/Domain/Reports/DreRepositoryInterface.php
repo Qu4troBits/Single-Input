@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Reports;
 
 use App\Domain\Reports\ValueObjects\DrePeriod;
+use App\Domain\Shared\Money;
 
 interface DreRepositoryInterface
 {

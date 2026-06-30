@@ -178,7 +178,7 @@ final readonly class DreLine
             'id' => $this->id,
             'code' => $this->code,
             'description' => $this->description,
-            'amount' => $this->amount->getAmount(),
+            'amount' => $this->amount->toNumeric(),
             'formatted_amount' => $this->getFormattedAmount(),
             'type' => $this->type->value,
             'type_label' => $this->type->getLabel(),

@@ -215,6 +215,7 @@ final class Dre
             'title' => $this->title,
             'category_id' => $this->categoryId,
             'scenario' => $this->scenario,
+            'lines' => array_map(fn(DreLine $line) => $line->toArray(), $this->lines),
             'total_revenue' => $this->getTotalRevenue()->getAmount(),
             'total_expenses' => $this->getTotalExpenses()->getAmount(),
             'gross_profit' => $this->getGrossProfit()->getAmount(),
@@ -223,7 +224,6 @@ final class Dre
             'profit_margin' => $this->getProfitMargin(),
             'operating_margin' => $this->getOperatingMargin(),
             'gross_margin' => $this->getGrossMargin(),
-            'total_lines' => count($this->lines),
         ];
     }
 

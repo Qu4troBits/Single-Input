@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\BankAccounts\Data\CreateBankAccountData;
-use App\Application\BankAccounts\Data\UpdateBankAccountData;
+use App\Application\BankAccounts\DTOs\CreateBankAccountData;
+use App\Application\BankAccounts\DTOs\UpdateBankAccountData;
 use App\Application\BankAccounts\Handlers\CreateBankAccountHandler;
 use App\Application\BankAccounts\Handlers\DeleteBankAccountHandler;
 use App\Application\BankAccounts\Handlers\UpdateBankAccountHandler;
-use App\Domain\BankAccounts\BankAccountId;
-use App\Domain\BankAccounts\BankAccountRepositoryInterface;
-use App\Domain\BankAccounts\BankAccountStatus;
-use App\Domain\BankAccounts\BankAccountType;
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
+use App\Domain\BankAccounts\Repositories\BankAccountRepositoryInterface;
+use App\Domain\BankAccounts\ValueObjects\BankAccountStatus;
+use App\Domain\BankAccounts\ValueObjects\BankAccountType;
 use App\Domain\Shared\Money;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -96,9 +96,14 @@ class BankAccountsController extends Controller
             'is_default' => 'boolean',
         ]);
 
+        $type = BankAccountType::tryFrom($validated['type']);
+        if ($type === null) {
+            throw new \InvalidArgumentException('Invalid bank account type.');
+        }
+        
         $bankAccountId = $handler->handle(new CreateBankAccountData(
             name: $validated['name'],
-            type: BankAccountType::from($validated['type']),
+            type: $type,
             bankCode: $validated['bank_code'],
             bankName: $validated['bank_name'],
             agencyNumber: $validated['agency_number'],
@@ -168,6 +173,7 @@ class BankAccountsController extends Controller
             'agency_number' => 'required|string|max:20',
             'account_number' => 'required|string|max:30',
             'account_digit' => 'nullable|string|max:2',
+            'initial_balance' => 'required|string',
             'description' => 'nullable|string|max:1000',
             'color' => 'nullable|string|regex:/^#[0-9A-F]{6}$/i',
             'icon' => 'nullable|string|max:50',
@@ -176,15 +182,21 @@ class BankAccountsController extends Controller
             'is_default' => 'boolean',
         ]);
 
+        $type = BankAccountType::tryFrom($validated['type']);
+        if ($type === null) {
+            throw new \InvalidArgumentException('Invalid bank account type.');
+        }
+        
         $handler->handle(new UpdateBankAccountData(
             id: BankAccountId::fromString($id),
             name: $validated['name'],
-            type: BankAccountType::from($validated['type']),
+            type: $type,
             bankCode: $validated['bank_code'],
             bankName: $validated['bank_name'],
             agencyNumber: $validated['agency_number'],
             accountNumber: $validated['account_number'],
             accountDigit: $validated['account_digit'] ?? null,
+            initialBalance: Money::of($validated['initial_balance']),
             description: $validated['description'] ?? null,
             color: $validated['color'] ?? null,
             icon: $validated['icon'] ?? null,

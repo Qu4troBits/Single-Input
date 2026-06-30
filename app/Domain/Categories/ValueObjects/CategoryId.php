@@ -6,7 +6,7 @@ namespace App\Domain\Categories\ValueObjects;
 
 use App\Domain\Shared\UuidIdentifier;
 
-final class CategoryId extends UuidIdentifier
+final readonly class CategoryId extends UuidIdentifier
 {
     public static function getPrefix(): string
     {
