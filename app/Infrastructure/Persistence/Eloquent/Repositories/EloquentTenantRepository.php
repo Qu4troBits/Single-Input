@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 
 use App\Domain\Tenancy\Tenant;
 use App\Domain\Tenancy\TenantRepositoryInterface;
+use App\Domain\Tenancy\ValueObjects\TenantId;
 use App\Domain\Tenancy\ValueObjects\TenantSchemaName;
 use App\Domain\Tenancy\ValueObjects\TenantSlug;
 use App\Infrastructure\Persistence\Eloquent\Models\TenantModel;
@@ -23,34 +24,46 @@ final readonly class EloquentTenantRepository implements TenantRepositoryInterfa
             return null;
         }
 
-        return new Tenant(
-            id: (int) $model->getAttribute('id'),
-            slug: TenantSlug::fromString((string) $model->getAttribute('slug')),
-            name: (string) $model->getAttribute('name'),
-            schemaName: new TenantSchemaName((string) $model->getAttribute('db_schema')),
-            planId: (int) $model->getAttribute('plan_id'),
-        );
+        return $this->mapModelToEntity($model);
     }
 
-    public function create(TenantSlug $slug, string $name, int $planId): Tenant
+    public function findById(TenantId $id): ?Tenant
     {
         DB::statement('SET search_path TO public');
 
-        $schemaName = TenantSchemaName::forSlug($slug);
+        $model = TenantModel::query()->find($id->toString());
 
-        $model = TenantModel::query()->create([
-            'slug' => $slug->toString(),
-            'name' => $name,
-            'db_schema' => $schemaName->toString(),
-            'plan_id' => $planId,
-        ]);
+        if ($model === null) {
+            return null;
+        }
 
-        return new Tenant(
-            id: (int) $model->getAttribute('id'),
-            slug: $slug,
-            name: (string) $model->getAttribute('name'),
-            schemaName: $schemaName,
-            planId: (int) $model->getAttribute('plan_id'),
+        return $this->mapModelToEntity($model);
+    }
+
+    public function save(Tenant $tenant): void
+    {
+        DB::statement('SET search_path TO public');
+
+        TenantModel::query()->updateOrCreate(
+            ['id' => $tenant->id->toString()],
+            [
+                'slug' => $tenant->slug->toString(),
+                'name' => $tenant->name,
+                'db_schema' => $tenant->schemaName->toString(),
+                'plan_id' => $tenant->planId->toString(),
+                'created_at' => $tenant->createdAt,
+            ]
+        );
+    }
+
+    private function mapModelToEntity(TenantModel $model): Tenant
+    {
+        return Tenant::create(
+            id: TenantId::fromString($model->getAttribute('id')),
+            slug: $model->getAttribute('slug'),
+            name: $model->getAttribute('name'),
+            planId: \App\Domain\Plans\PlanId::fromString($model->getAttribute('plan_id')),
+            dbSchema: $model->getAttribute('db_schema'),
         );
     }
 }

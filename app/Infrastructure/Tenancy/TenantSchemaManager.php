@@ -16,6 +16,16 @@ final readonly class TenantSchemaManager implements TenantSchemaManagerInterface
         DB::statement(sprintf('CREATE SCHEMA IF NOT EXISTS "%s"', $this->escapeIdentifier($schemaName->toString())));
     }
 
+    public function createTenantSchema(string $schemaName): void
+    {
+        DB::statement(sprintf('CREATE SCHEMA IF NOT EXISTS "%s"', $this->escapeIdentifier($schemaName)));
+    }
+
+    public function dropTenantSchema(string $schemaName): void
+    {
+        DB::statement(sprintf('DROP SCHEMA IF EXISTS "%s" CASCADE', $this->escapeIdentifier($schemaName)));
+    }
+
     public function runTenantMigrations(TenantSchemaName $schemaName): void
     {
         DB::statement(sprintf(

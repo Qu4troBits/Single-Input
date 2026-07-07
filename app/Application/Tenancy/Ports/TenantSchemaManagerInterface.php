@@ -10,5 +10,9 @@ interface TenantSchemaManagerInterface
 {
     public function createSchema(TenantSchemaName $schemaName): void;
 
+    public function createTenantSchema(string $schemaName): void;
+
     public function runTenantMigrations(TenantSchemaName $schemaName): void;
+
+    public function dropTenantSchema(string $schemaName): void;
 }
