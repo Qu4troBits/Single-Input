@@ -108,7 +108,7 @@ final class BankReconciliationController extends Controller
 
         $items = [];
         foreach ($validated['items'] as $item) {
-            $items[] = new \App\Application\BankReconciliation\Data\BankStatementItemData(
+            $items[] = new \App\Application\BankReconciliation\DTOs\BankStatementItemData(
                 id: $item['id'],
                 date: \DateTimeImmutable::createFromFormat('Y-m-d', $item['date']),
                 description: $item['description'],
@@ -166,7 +166,7 @@ final class BankReconciliationController extends Controller
 
         $items = [];
         foreach ($validated['items'] as $item) {
-            $items[] = new \App\Application\BankReconciliation\Data\ReconciliationItemData(
+            $items[] = new \App\Application\BankReconciliation\DTOs\ReconciliationItemData(
                 id: $item['id'],
                 description: $item['description'],
                 amount: $item['amount'],

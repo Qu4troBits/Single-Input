@@ -62,7 +62,7 @@ final readonly class EloquentTenantRepository implements TenantRepositoryInterfa
             id: TenantId::fromString($model->getAttribute('id')),
             slug: $model->getAttribute('slug'),
             name: $model->getAttribute('name'),
-            planId: \App\Domain\Plans\PlanId::fromString($model->getAttribute('plan_id')),
+            planId: \App\Domain\Plans\ValueObjects\PlanId::fromString($model->getAttribute('plan_id')),
             dbSchema: $model->getAttribute('db_schema'),
         );
     }

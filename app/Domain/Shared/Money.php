@@ -121,4 +121,17 @@ final readonly class Money
     {
         return $this->amount;
     }
+
+    public function absolute(): self
+    {
+        if ($this->isNegative()) {
+            return new self(substr($this->amount, 1));
+        }
+        return $this;
+    }
+
+    public function abs(): self
+    {
+        return $this->absolute();
+    }
 }

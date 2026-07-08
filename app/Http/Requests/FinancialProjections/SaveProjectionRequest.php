@@ -45,7 +45,7 @@ final class SaveProjectionRequest extends FormRequest
             $rules['quarter'] = ['required', 'integer', 'min:1', 'max:4'];
         }
 
-        if ($thisinput('period_type') === 'yearly') {
+        if ($this->input('period_type') === 'yearly') {
             $rules['year'] = ['required', 'digits:4'];
         }
 

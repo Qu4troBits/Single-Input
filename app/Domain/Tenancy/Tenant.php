@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Tenancy;
 
-use App\Domain\Plans\PlanId;
+use App\Domain\Plans\ValueObjects\PlanId;
 use App\Domain\Tenancy\ValueObjects\TenantId;
 use App\Domain\Tenancy\ValueObjects\TenantSchemaName;
 use App\Domain\Tenancy\ValueObjects\TenantSlug;

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Domain\Plans\PlanId;
+use App\Domain\Plans\ValueObjects\PlanId;
 use App\Domain\Tenancy\Tenant;
-use App\Domain\Tenancy\TenantId;
+use App\Domain\Tenancy\ValueObjects\TenantId;
 use App\Domain\Tenancy\TenantRepositoryInterface;
+use App\Domain\Tenancy\ValueObjects\TenantSlug;
 use App\Infrastructure\Tenancy\TenantSchemaManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ final class TenantCreateCommand extends Command
         }
 
         // Check if tenant already exists
-        $existingTenant = $tenantRepository->findBySlug($slug);
+        $existingTenant = $tenantRepository->findBySlug(TenantSlug::fromString($slug));
         if ($existingTenant !== null) {
             $this->error("Tenant with slug '{$slug}' already exists.");
             return self::FAILURE;
@@ -55,7 +56,7 @@ final class TenantCreateCommand extends Command
             );
 
             // Create database schema
-            $schemaManager->createTenantSchema($tenant->dbSchema);
+            $schemaManager->createTenantSchema($tenant->schemaName->toString());
 
             // Save tenant to repository
             $tenantRepository->save($tenant);

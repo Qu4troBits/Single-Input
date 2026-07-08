@@ -6,6 +6,7 @@ namespace App\Application\Tenancy\CreateTenant;
 
 use App\Application\Tenancy\Ports\InitialTenantAdminCreatorInterface;
 use App\Application\Tenancy\Ports\TenantSchemaManagerInterface;
+use App\Console\Commands\TenantCreateCommand;
 use App\Domain\Plans\PlanRepositoryInterface;
 use App\Domain\Tenancy\Tenant;
 use App\Domain\Tenancy\TenantRepositoryInterface;
@@ -19,8 +20,8 @@ final readonly class CreateTenantHandler
         private TenantRepositoryInterface $tenants,
         private TenantSchemaManagerInterface $schemaManager,
         private InitialTenantAdminCreatorInterface $adminCreator,
-    ) {
-    }
+        private TenantCreateCommand $createCommand,
+    ) {}
 
     public function handle(CreateTenantData $data): Tenant
     {
@@ -38,7 +39,7 @@ final readonly class CreateTenantHandler
             throw new RuntimeException('Tenant already exists.');
         }
 
-        $tenant = $this->tenants->create($slug, $data->name, $plan->id);
+        $tenant = $this->createCommand->createTenant($slug, $data->name, $plan->id);
 
         $this->schemaManager->createSchema($tenant->schemaName);
         $this->schemaManager->runTenantMigrations($tenant->schemaName);

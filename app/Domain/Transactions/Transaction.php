@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Transactions;
 
-use App\Domain\BankAccounts\BankAccountId;
-use App\Domain\Categories\CategoryId;
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
+use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Shared\Money;
 
 final class Transaction

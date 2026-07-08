@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\BankReconciliation\Jobs;
 
 use App\Domain\BankReconciliation\ReconciliationRepositoryInterface;
-use App\Domain\BankAccounts\BankAccountId;
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -23,7 +23,7 @@ final class GenerateReconciliationReportJob implements ShouldQueue
 
     public int $tries = 3;
     public int $timeout = 300;
-    public int $backoff = [30, 60, 120];
+    public array $backoff = [30, 60, 120];
 
     public function __construct(
         private readonly string $bankAccountId,
@@ -48,8 +48,8 @@ final class GenerateReconciliationReportJob implements ShouldQueue
             $startDate = new \DateTimeImmutable($this->startDate);
             $endDate = new \DateTimeImmutable($this->endDate);
 
-            $report = $repository->generateReconciliationReport(
-                $bankAccountId,
+            $report = $repository->generateSummary(
+                $bankAccountId->toString(),
                 $startDate,
                 $endDate
             );

@@ -23,7 +23,7 @@ final class CalculateDreJob implements ShouldQueue
 
     public int $tries = 3;
     public int $timeout = 300;
-    public int $backoff = [30, 60, 120];
+    public array $backoff = [30, 60, 120];
 
     public function __construct(
         private readonly GenerateDreData $data,
@@ -44,11 +44,15 @@ final class CalculateDreJob implements ShouldQueue
 
             $dre = $handler->handle($this->data);
 
+            // Generate an ID for the DRE before saving
+            $dre->setId(\Illuminate\Support\Str::uuid()->toString());
+            $dre->setGeneratedAt(new \DateTimeImmutable());
+
             $repository->save($dre);
 
             Log::info('DRE calculation completed successfully', [
                 'tenant_id' => $this->tenantId,
-                'dre_id' => $dre->id->toString(),
+                'dre_id' => $dre->getId(),
             ]);
         } catch (\Exception $e) {
             Log::error('DRE calculation failed', [

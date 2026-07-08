@@ -28,7 +28,7 @@ final readonly class GenerateProjectionHandler
             \App\Domain\FinancialProjections\ProjectionType::PROFIT => 
                 $this->projectionGenerator->generateProfitProjection($period),
             \App\Domain\FinancialProjections\ProjectionType::CASH_FLOW => 
-                $this->projectionGenerator->generateCashFlowProjection($period),
+                $this->projectionGenerator->generateCashFlowProjection($period), 
             \App\Domain\FinancialProjections\ProjectionType::BALANCE_SHEET => 
                 $this->projectionGenerator->generateBalanceSheetProjection($period),
         };

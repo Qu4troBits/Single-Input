@@ -8,6 +8,7 @@ use App\Application\FinancialProjections\DTOs\GenerateProjectionData;
 use App\Application\FinancialProjections\DTOs\SaveProjectionData;
 use App\Application\FinancialProjections\Handlers\GenerateProjectionHandler;
 use App\Application\FinancialProjections\Handlers\SaveProjectionHandler;
+use App\Domain\FinancialProjections\FinancialProjection;
 use App\Domain\FinancialProjections\FinancialProjectionRepositoryInterface;
 use App\Domain\FinancialProjections\ProjectionType;
 use App\Http\Requests\FinancialProjections\GenerateProjectionRequest;
@@ -92,7 +93,7 @@ final class FinancialProjectionsController extends Controller
 
         $items = [];
         foreach ($validated['items'] as $item) {
-            $items[] = new \App\Application\FinancialProjections\Data\ProjectionItemData(
+            $items[] = new \App\Application\FinancialProjections\DTOs\ProjectionItemData(
                 id: $item['id'],
                 date: $item['date'],
                 description: $item['description'],
@@ -155,7 +156,7 @@ final class FinancialProjectionsController extends Controller
 
         $items = [];
         foreach ($validated['items'] as $item) {
-            $items[] = new \App\Application\FinancialProjections\Data\ProjectionItemData(
+            $items[] = new \App\Application\FinancialProjections\DTOs\ProjectionItemData(
                 id: $item['id'],
                 date: $item['date'],
                 description: $item['description'],

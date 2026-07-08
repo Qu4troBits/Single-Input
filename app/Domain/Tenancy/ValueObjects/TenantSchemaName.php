@@ -24,6 +24,11 @@ final readonly class TenantSchemaName
         return new self('tenant_'.$slug->toString());
     }
 
+    public static function fromString(string $value): self
+    {
+        return new self($value);
+    }
+
     public function toString(): string
     {
         return $this->value;

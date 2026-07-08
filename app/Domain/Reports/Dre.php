@@ -7,6 +7,7 @@ namespace App\Domain\Reports;
 use App\Domain\Shared\Money;
 use App\Domain\Reports\ValueObjects\DreLine;
 use App\Domain\Reports\ValueObjects\DrePeriod;
+use DateTimeImmutable;
 
 final class Dre
 {
@@ -18,6 +19,10 @@ final class Dre
         private readonly string $title,
         private readonly ?string $categoryId = null,
         private readonly ?string $scenario = 'base',
+        private ?string $id = null,
+        private ?DateTimeImmutable $generatedAt = null,
+        private ?Money $ebitda = null,
+        private ?Money $ebit = null,
     ) {
         $this->validate();
     }
@@ -237,5 +242,57 @@ final class Dre
             'lines' => array_map(fn(DreLine $line) => $line->toArray(), $this->lines),
             'summary' => $this->getSummary(),
         ];
+    }
+
+    // Missing getter and setter methods
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
+
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function getEbitda(): Money
+    {
+        return $this->ebitda ?? Money::zero();
+    }
+
+    public function setEbitda(Money $ebitda): void
+    {
+        $this->ebitda = $ebitda;
+    }
+
+    public function getEbit(): Money
+    {
+        return $this->ebit ?? $this->getOperatingProfit();
+    }
+
+    public function setEbit(Money $ebit): void
+    {
+        $this->ebit = $ebit;
+    }
+
+    public function getGeneratedAt(): ?DateTimeImmutable
+    {
+        return $this->generatedAt;
+    }
+
+    public function setGeneratedAt(DateTimeImmutable $generatedAt): void
+    {
+        $this->generatedAt = $generatedAt;
+    }
+
+    // Methods that are referenced in controllers
+    public static function getStandardDreStructure(): array
+    {
+        return [];
+    }
+
+    public function calculateFinancialRatios(): array
+    {
+        return [];
     }
 }

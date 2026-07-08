@@ -28,7 +28,8 @@ final class DeleteBankAccountHandler
         }
 
         // Verificar se existem transações associadas à conta
-        if ($this->bankAccountRepository->hasTransactions($id)) {
+        $transactions = $this->transactionRepository->findByBankAccountId($bankAccount->getId());
+        if (count($transactions) > 0) {
             throw new \DomainException('Não é possível excluir uma conta bancária com transações associadas.');
         }
 

@@ -9,7 +9,7 @@ use App\Application\Auth\Ports\SessionAuthenticatorInterface;
 use App\Application\Auth\Ports\TwoFactorChallengeStoreInterface;
 use App\Application\Auth\Ports\UserAuthRepositoryInterface;
 use App\Domain\Tenancy\TenantContextInterface;
-use RuntimeException;
+use RuntimeException; 
 
 final readonly class LoginHandler
 {
@@ -30,7 +30,7 @@ final readonly class LoginHandler
             throw new RuntimeException('Tenant context not configured.');
         }
 
-        $user = $this->users->findByEmailAndTenant($data->email, $tenant->id);
+        $user = $this->users->findByEmailAndTenant($data->email, intval($tenant->id));
 
         if ($user === null) {
             throw new RuntimeException('Invalid credentials.');

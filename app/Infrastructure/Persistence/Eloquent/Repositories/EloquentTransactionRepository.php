@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 
-use App\Domain\BankAccounts\BankAccountId;
-use App\Domain\Categories\CategoryId;
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
+use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Shared\Money;
 use App\Domain\Transactions\Transaction;
 use App\Domain\Transactions\TransactionId;
@@ -141,9 +141,9 @@ final class EloquentTransactionRepository implements TransactionRepositoryInterf
             direction: \App\Domain\Transactions\TransactionDirection::from($model->direction),
             status: TransactionStatus::from($model->status),
             competenceMonth: $model->competence_month,
-            paymentDate: $model->payment_date,
-            createdAt: $model->created_at,
-            updatedAt: $model->updated_at,
+            paymentDate: \DateTimeImmutable::createFromInterface($model->payment_date),
+            createdAt: \DateTimeImmutable::createFromInterface($model->created_at),
+            updatedAt: \DateTimeImmutable::createFromInterface($model->updated_at),
         );
     }
 }

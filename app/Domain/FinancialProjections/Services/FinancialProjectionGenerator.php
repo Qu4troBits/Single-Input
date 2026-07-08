@@ -30,7 +30,7 @@ final readonly class FinancialProjectionGenerator
         // Lógica para gerar projeção de receitas baseada em dados históricos
         // Esta é uma implementação simplificada
         $historicalData = $this->getHistoricalRevenueData($period, $categoryId);
-        
+
         foreach ($historicalData as $item) {
             $projection->addItem(new ProjectionItem(
                 id: $item['id'],
@@ -45,7 +45,7 @@ final readonly class FinancialProjectionGenerator
 
         // Aplicar fatores de crescimento baseados no tipo de período
         $growthFactor = $this->calculateGrowthFactor($period->getPeriodType());
-        
+
         // Adicionar itens projetados
         $projectedItems = $this->generateProjectedItems($historicalData, $growthFactor);
         foreach ($projectedItems as $item) {
@@ -126,13 +126,13 @@ final readonly class FinancialProjectionGenerator
     private function generateProjectedItems(array $historicalData, float $growthFactor): array
     {
         $items = [];
-        
+
         // Calcular média histórica
         $totalAmount = Money::zero();
         foreach ($historicalData as $item) {
             $totalAmount = $totalAmount->add(Money::of($item['amount']));
         }
-        
+
         $averageAmount = $totalAmount->divide((string) count($historicalData));
         $projectedAmount = $averageAmount->multiply((string) $growthFactor);
 
@@ -147,5 +147,133 @@ final readonly class FinancialProjectionGenerator
         );
 
         return $items;
+    }
+
+    public function generateCashFlowProjection(ProjectionPeriod $period): FinancialProjection
+    {
+        $projection = new FinancialProjection(
+            period: $period,
+            type: ProjectionType::CASH_FLOW,
+            title: 'Projeção de Fluxo de Caixa',
+        );
+
+        // Calcular fluxo de caixa baseado em receitas e despesas projetadas
+        $revenueProjection = $this->generateRevenueProjection($period);
+        $expenseProjection = $this->generateExpenseProjection($period);
+
+        // Consolidar itens de fluxo de caixa
+        foreach ($revenueProjection->getItems() as $item) {
+            $projection->addItem(new ProjectionItem(
+                id: 'cf-rev-' . $item->getId(),
+                date: $item->getDate(),
+                description: 'Receita: ' . $item->getDescription(),
+                amount: $item->getAmount(),
+                type: ProjectionType::CASH_FLOW,
+                source: 'cash_flow_revenue',
+            ));
+        }
+
+        foreach ($expenseProjection->getItems() as $item) {
+            $projection->addItem(new ProjectionItem(
+                id: 'cf-exp-' . $item->getId(),
+                date: $item->getDate(),
+                description: 'Despesa: ' . $item->getDescription(),
+                amount: $item->getAmount()->multiply('-1'),
+                type: ProjectionType::CASH_FLOW,
+                source: 'cash_flow_expense',
+            ));
+        }
+
+        return $projection;
+    }
+
+    public function generateBalanceSheetProjection(ProjectionPeriod $period): FinancialProjection
+    {
+        $projection = new FinancialProjection(
+            period: $period,
+            type: ProjectionType::BALANCE_SHEET,
+            title: 'Projeção de Balanço Patrimonial',
+        );
+
+        // Projetar ativos
+        $projectedAssets = $this->projectAssets($period);
+        foreach ($projectedAssets as $asset) {
+            $projection->addItem(new ProjectionItem(
+                id: 'asset-' . uniqid(),
+                date: $period->getEndDate(),
+                description: $asset['description'],
+                amount: $asset['amount'],
+                type: ProjectionType::BALANCE_SHEET,
+                source: 'projected_assets',
+            ));
+        }
+
+        // Projetar passivos
+        $projectedLiabilities = $this->projectLiabilities($period);
+        foreach ($projectedLiabilities as $liability) {
+            $projection->addItem(new ProjectionItem(
+                id: 'liab-' . uniqid(),
+                date: $period->getEndDate(),
+                description: $liability['description'],
+                amount: $liability['amount']->multiply('-1'),
+                type: ProjectionType::BALANCE_SHEET,
+                source: 'projected_liabilities',
+            ));
+        }
+
+        // Projetar patrimônio líquido
+        $projectedEquity = $this->projectEquity($period);
+        foreach ($projectedEquity as $equity) {
+            $projection->addItem(new ProjectionItem(
+                id: 'equity-' . uniqid(),
+                date: $period->getEndDate(),
+                description: $equity['description'],
+                amount: $equity['amount'],
+                type: ProjectionType::BALANCE_SHEET,
+                source: 'projected_equity',
+            ));
+        }
+
+        return $projection;
+    }
+
+    /**
+     * @return array<array{description: string, amount: Money}>
+     */
+    private function projectAssets(ProjectionPeriod $period): array
+    {
+        // Implementação simplificada - em produção, buscar dados reais
+        return [
+            ['description' => 'Caixa e Equivalentes', 'amount' => Money::of('50000.00')],
+            ['description' => 'Contas a Receber', 'amount' => Money::of('75000.00')],
+            ['description' => 'Estoques', 'amount' => Money::of('30000.00')],
+            ['description' => 'Imobilizado', 'amount' => Money::of('200000.00')],
+        ];
+    }
+
+    /**
+     * @return array<array{description: string, amount: Money}>
+     */
+    private function projectLiabilities(ProjectionPeriod $period): array
+    {
+        // Implementação simplificada - em produção, buscar dados reais
+        return [
+            ['description' => 'Fornecedores', 'amount' => Money::of('25000.00')],
+            ['description' => 'Empréstimos Bancários', 'amount' => Money::of('100000.00')],
+            ['description' => 'Obrigações Fiscais', 'amount' => Money::of('15000.00')],
+        ];
+    }
+
+    /**
+     * @return array<array{description: string, amount: Money}>
+     */
+    private function projectEquity(ProjectionPeriod $period): array
+    {
+        // Implementação simplificada - em produção, buscar dados reais
+        return [
+            ['description' => 'Capital Social', 'amount' => Money::of('150000.00')],
+            ['description' => 'Reservas de Lucro', 'amount' => Money::of('50000.00')],
+            ['description' => 'Lucros Acumulados', 'amount' => Money::of('80000.00')],
+        ];
     }
 }
