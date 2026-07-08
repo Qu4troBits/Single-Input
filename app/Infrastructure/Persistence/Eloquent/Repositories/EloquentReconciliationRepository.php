@@ -98,6 +98,82 @@ final class EloquentReconciliationRepository implements ReconciliationRepository
         );
     }
 
+    public function findReconciledByBankAccountId(string $bankAccountId): array
+    {
+        $models = ReconciliationItemModel::query()
+            ->where('bank_account_id', $bankAccountId)
+            ->where('status', ReconciliationStatus::RECONCILED->value)
+            ->orderBy('date')
+            ->get();
+
+        return $this->mapModelsToDomain($models);
+    }
+
+    public function findDiscrepanciesByBankAccountId(string $bankAccountId): array
+    {
+        $models = ReconciliationItemModel::query()
+            ->where('bank_account_id', $bankAccountId)
+            ->where('status', ReconciliationStatus::DISCREPANCY->value)
+            ->orderBy('date')
+            ->get();
+
+        return $this->mapModelsToDomain($models);
+    }
+
+    public function delete(string $id): void
+    {
+        ReconciliationItemModel::destroy($id);
+    }
+
+    public function findById(string $id): ?ReconciliationItem
+    {
+        $model = ReconciliationItemModel::find($id);
+        if (!$model) {
+            return null;
+        }
+
+        return $this->mapModelsToDomain(collect([$model]))[0];
+    }
+
+    public function getRecentSummaries(string $bankAccountId, int $limit = 5): array
+    {
+        // For this example, we'll generate mock summaries
+        $summaries = [];
+        $now = new \DateTimeImmutable();
+
+        for ($i = 0; $i < $limit; $i++) {
+            $startDate = $now->modify("-" . ($i + 1) . " month")->modify("first day of this month");
+            $endDate = $startDate->modify("last day of this month");
+            $summaries[] = $this->generateSummary($bankAccountId, $startDate, $endDate);
+        }
+
+        return $summaries;
+    }
+
+    public function markAsReconciled(string $id, string $transactionId): void
+    {
+        $model = ReconciliationItemModel::findOrFail($id);
+        $model->update([
+            'status' => ReconciliationStatus::RECONCILED->value,
+            'transaction_id' => $transactionId,
+        ]);
+    }
+
+    public function markAsUnreconciled(string $id): void
+    {
+        $model = ReconciliationItemModel::findOrFail($id);
+        $model->update([
+            'status' => ReconciliationStatus::PENDING->value,
+            'transaction_id' => null,
+        ]);
+    }
+
+    public function updateNotes(string $id, string $notes): void
+    {
+        $model = ReconciliationItemModel::findOrFail($id);
+        $model->update(['notes' => $notes]);
+    }
+
     /**
      * @param Collection<ReconciliationItemModel> $models
      * @return array<ReconciliationItem>

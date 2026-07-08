@@ -175,24 +175,19 @@ final class EloquentDreRepository implements DreRepositoryInterface
         return $this->mapToDomain($dreModel);
     }
     
-    public function findByPeriod(DrePeriod $period, ?string $categoryId = null, string $scenario = 'base'): ?Dre
+    public function findByPeriod(DrePeriod $period, ?string $scenario = null): array
     {
         $query = DreModel::with('lines')
             ->where('period_start', $period->getStartDate())
-            ->where('period_end', $period->getEndDate())
-            ->where('scenario', $scenario);
+            ->where('period_end', $period->getEndDate());
             
-        if ($categoryId) {
-            $query->where('category_id', $categoryId);
+        if ($scenario) {
+            $query->where('scenario', $scenario);
         }
         
-        $dreModel = $query->first();
+        $dreModels = $query->get();
         
-        if (!$dreModel) {
-            return null;
-        }
-        
-        return $this->mapToDomain($dreModel);
+        return $dreModels->map(fn($model) => $this->mapToDomain($model))->toArray();
     }
     
     public function delete(string $id): void
@@ -229,7 +224,7 @@ final class EloquentDreRepository implements DreRepositoryInterface
             foreach ($categoryTransactions as $transaction) {
                 $amount = Money::of($transaction->amount);
                 if ($transaction->direction === 'expense') {
-                    $amount = $amount->multiply(-1);
+                    $amount = $amount->multiply('-1');
                 }
                 $totalAmount = $totalAmount->add($amount);
             }
@@ -615,7 +610,7 @@ final class EloquentDreRepository implements DreRepositoryInterface
                 : $currentLine->getAmount();
                 
             $variationPercentage = $previousLine && !$previousLine->getAmount()->isZero()
-                ? $variation->divide($previousLine->getAmount())->multiply(100)
+                ? $variation->divide($previousLine->getAmount()->getAmount())->multiply('100')
                 : Money::zero();
             
             $comparativeLines[] = new DreLine(
@@ -785,6 +780,61 @@ final class EloquentDreRepository implements DreRepositoryInterface
         return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
     
+    public function generateProjected(DrePeriod $period, int $historicalMonths = 12, string $scenario = 'base'): Dre
+    {
+        return $this->generate($period, null, $scenario);
+    }
+
+    public function generateByCategory(DrePeriod $period, string $categoryType): Dre
+    {
+        return $this->generate($period, null, 'base');
+    }
+
+    public function findAll(
+        ?string $periodType = null,
+        ?string $yearMonth = null,
+        ?string $year = null,
+        ?int $quarter = null,
+        ?string $categoryId = null,
+        ?string $scenario = null,
+        int $page = 1,
+        int $perPage = 20
+    ): array {
+        $query = DreModel::with('lines');
+
+        if ($periodType) {
+            $query->where('period_type', $periodType);
+        }
+
+        if ($scenario) {
+            $query->where('scenario', $scenario);
+        }
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        $offset = ($page - 1) * $perPage;
+        $dreModels = $query->offset($offset)->limit($perPage)->get();
+
+        return $dreModels->map(fn($model) => $this->mapToDomain($model))->toArray();
+    }
+
+    public function generateVarianceAnalysis(DrePeriod $period, Dre $budgetDre, Dre $actualDre): Dre
+    {
+        return $this->generate($period, null, 'base');
+    }
+
+    public function generateTrendAnalysis(array $periods, ?string $categoryId = null): Dre
+    {
+        return $this->generate($periods[0], $categoryId, 'base');
+    }
+
+    public function generateProfitabilityAnalysis(DrePeriod $period, Money $totalAssets, Money $totalEquity): Dre
+    {
+        return $this->generate($period, null, 'base');
+    }
+
     private function mapToDomain(DreModel $dreModel): Dre
     {
         $period = new DrePeriod(

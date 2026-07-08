@@ -6,6 +6,7 @@ namespace App\Domain\Categories\Entities;
 
 use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Categories\ValueObjects\CategoryType;
+use App\Domain\Categories\ValueObjects\CategoryStatus;
 use DateTimeImmutable;
 
 final class Category
@@ -189,5 +190,14 @@ final class Category
     public function isRoot(): bool
     {
         return $this->parentId === null;
+    }
+
+    public function getStatus(): CategoryStatus
+    {
+        if ($this->isArchived()) {
+            return CategoryStatus::ARCHIVED;
+        }
+        
+        return CategoryStatus::ACTIVE;
     }
 }

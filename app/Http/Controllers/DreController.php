@@ -39,7 +39,7 @@ final class DreController extends Controller
             $quarter,
             $categoryId,
             $scenario,
-            $request->query('page', 1),
+            (int) $request->query('page', 1),
             20
         );
 

@@ -54,4 +54,8 @@ interface CategoryRepositoryInterface
     public function countByParent(CategoryId $parentId): int;
 
     public function getDefaultCategories(): array;
+
+    public function hasChildren(CategoryId $id): bool;
+
+    public function hasTransactions(CategoryId $id): bool;
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Categories\Handlers;
 
-use App\Domain\Categories\Repositories\CategoryRepositoryInterface;
+use App\Domain\Categories\Repositories\CategoryRepositoryInterface; 
 use App\Domain\Categories\ValueObjects\CategoryId;
 use DateTimeImmutable;
 
@@ -36,7 +36,7 @@ final class DeleteCategoryHandler
             throw new \DomainException('Não é possível excluir uma categoria padrão.');
         }
 
-        $this->categoryRepository->delete($id);
+        $this->categoryRepository->delete($category);
     }
 
     public function archive(CategoryId $id): void

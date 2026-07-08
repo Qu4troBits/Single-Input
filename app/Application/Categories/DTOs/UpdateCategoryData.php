@@ -6,13 +6,14 @@ namespace App\Application\Categories\DTOs;
 
 use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Categories\ValueObjects\CategoryType;
+use App\Domain\Categories\ValueObjects\CategoryStatus;
 
 final class UpdateCategoryData
 {
     public function __construct(
-        public readonly CategoryId $id,
         public readonly string $name,
         public readonly CategoryType $type,
+        public readonly CategoryStatus $status,
         public readonly string $code,
         public readonly ?string $description = null,
         public readonly ?string $color = null,

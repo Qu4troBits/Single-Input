@@ -7,12 +7,14 @@ namespace App\Application\BankAccounts\Handlers;
 use App\Domain\BankAccounts\Repositories\BankAccountRepositoryInterface;
 use App\Domain\BankAccounts\ValueObjects\BankAccountId;
 use App\Domain\BankAccounts\ValueObjects\BankAccountStatus;
+use App\Domain\Transactions\TransactionRepositoryInterface;
 use DateTimeImmutable;
 
 final class DeleteBankAccountHandler
 {
     public function __construct(
         private readonly BankAccountRepositoryInterface $bankAccountRepository,
+        private readonly TransactionRepositoryInterface $transactionRepository,
     ) {}
 
     public function handle(BankAccountId $id): void
@@ -38,7 +40,7 @@ final class DeleteBankAccountHandler
             throw new \DomainException('Não é possível excluir a conta bancária padrão.');
         }
 
-        $this->bankAccountRepository->delete($id);
+        $this->bankAccountRepository->delete($bankAccount);
     }
 
     public function deactivate(BankAccountId $id): void

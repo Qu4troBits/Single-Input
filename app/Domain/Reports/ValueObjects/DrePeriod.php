@@ -152,4 +152,14 @@ final readonly class DrePeriod
             'duration_in_days' => $this->getDurationInDays(),
         ];
     }
+
+    public function toString(): string
+    {
+        return $this->getLabel();
+    }
+
+    public function __toString(): string
+    {
+        return $this->toString();
+    }
 }

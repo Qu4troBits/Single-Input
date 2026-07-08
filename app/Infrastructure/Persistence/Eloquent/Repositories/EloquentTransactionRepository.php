@@ -130,6 +130,16 @@ final class EloquentTransactionRepository implements TransactionRepositoryInterf
         return Money::of($balance);
     }
 
+    public function listLatest(int $limit = 50): array
+    {
+        $models = TransactionModel::orderBy('payment_date', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+
+        return array_map(fn ($model) => $this->toDomain($model), $models->all());
+    }
+
     private function toDomain(TransactionModel $model): Transaction
     {
         return new Transaction(

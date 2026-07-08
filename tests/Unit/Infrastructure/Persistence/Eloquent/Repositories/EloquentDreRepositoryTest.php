@@ -15,7 +15,7 @@ use App\Infrastructure\Persistence\Eloquent\Models\DreLineModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-final class EloquentDreRepositoryTest extends TestCase
+final class EloquentDreRepositoryTest extends TestCase 
 {
     use RefreshDatabase;
 

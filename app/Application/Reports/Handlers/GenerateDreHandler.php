@@ -130,4 +130,14 @@ final readonly class GenerateDreHandler
             \App\Domain\Shared\Money::of($totalEquity)
         );
     }
+
+    public function getStandardDreStructure(): array
+    {
+        return [];
+    }
+
+    public function calculateFinancialRatios(Dre $dre): array
+    {
+        return [];
+    }
 }

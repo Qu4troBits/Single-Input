@@ -63,8 +63,8 @@ final class BankAccountModel extends Model
         return $this->hasMany(TransactionModel::class, 'bank_account_id', 'id');
     }
 
-    public function dailyReconciliations(): HasMany
-    {
-        return $this->hasMany(DailyReconciliationModel::class, 'bank_account_id', 'id');
-    }
+    // public function dailyReconciliations(): HasMany
+    // {
+    //     return $this->hasMany(DailyReconciliationModel::class, 'bank_account_id', 'id');
+    // }
 }

@@ -101,11 +101,26 @@ interface DreRepositoryInterface
     /**
      * Lista todos os DREs salvos
      *
-     * @param int $limit Limite de resultados
-     * @param int $offset Offset para paginação
+     * @param string|null $periodType Tipo de período (monthly, quarterly, yearly, custom)
+     * @param string|null $yearMonth Ano/mês para filtro (formato Y-m)
+     * @param string|null $year Ano para filtro
+     * @param int|null $quarter Trimestre para filtro (1-4)
+     * @param string|null $categoryId ID da categoria para filtro
+     * @param string|null $scenario Cenário para filtro
+     * @param int $page Página para paginação
+     * @param int $perPage Número de resultados por página
      * @return array<Dre> DREs encontrados
      */
-    public function findAll(int $limit = 100, int $offset = 0): array;
+    public function findAll(
+        ?string $periodType = null,
+        ?string $yearMonth = null,
+        ?string $year = null,
+        ?int $quarter = null,
+        ?string $categoryId = null,
+        ?string $scenario = null,
+        int $page = 1,
+        int $perPage = 20
+    ): array;
 
     /**
      * Gera um DRE com análise de variação (budget vs actual)

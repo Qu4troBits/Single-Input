@@ -239,6 +239,16 @@ final class EloquentCategoryRepository implements CategoryRepositoryInterface
         return $this->mapCollectionToEntities($models->all());
     }
 
+    public function hasChildren(CategoryId $id): bool
+    {
+        return CategoryModel::where('parent_id', $id->toString())->exists();
+    }
+
+    public function hasTransactions(CategoryId $id): bool
+    {
+        return \App\Infrastructure\Persistence\Eloquent\Models\TransactionModel::where('category_id', $id->toString())->exists();
+    }
+
     private function mapToEntity(CategoryModel $model): Category
     {
         return new Category(

@@ -16,22 +16,22 @@ final class UpdateCategoryHandler
         private readonly CategoryRepositoryInterface $categoryRepository,
     ) {}
 
-    public function handle(UpdateCategoryData $data): Category
+    public function handle(CategoryId $id, UpdateCategoryData $data): Category
     {
-        $category = $this->categoryRepository->findById($data->id);
+        $category = $this->categoryRepository->findById($id);
         if (!$category) {
             throw new \DomainException('Categoria não encontrada.');
         }
 
         // Verificar se já existe outra categoria com o mesmo código (excluindo a atual)
         $existingCategoryByCode = $this->categoryRepository->findByCode($data->code);
-        if ($existingCategoryByCode && !$existingCategoryByCode->getId()->equals($data->id)) {
+        if ($existingCategoryByCode && !$existingCategoryByCode->getId()->equals($id)) {
             throw new \DomainException('Já existe outra categoria com este código.');
         }
 
         // Verificar se já existe outra categoria com o mesmo nome (excluindo a atual)
         $existingCategoryByName = $this->categoryRepository->findByName($data->name);
-        if ($existingCategoryByName && !$existingCategoryByName->getId()->equals($data->id)) {
+        if ($existingCategoryByName && !$existingCategoryByName->getId()->equals($id)) {
             throw new \DomainException('Já existe outra categoria com este nome.');
         }
 
@@ -41,22 +41,22 @@ final class UpdateCategoryHandler
         }
 
         // Verificar se não está tentando tornar uma categoria pai de si mesma
-        if ($data->parentId && $data->parentId->equals($data->id)) {
+        if ($data->parentId && $data->parentId->equals($id)) {
             throw new \DomainException('Uma categoria não pode ser pai de si mesma.');
         }
 
         // Verificar se não está criando um loop na hierarquia
         if ($data->parentId) {
-            $this->checkHierarchyLoop($data->id, $data->parentId);
+            $this->checkHierarchyLoop($id, $data->parentId);
         }
 
         // Se esta categoria for marcada como padrão, desmarcar outras do mesmo tipo
         if ($data->isDefault && !$category->isDefault()) {
-            $this->unsetOtherDefaultCategories($data->id, $data->type);
+            $this->unsetOtherDefaultCategories($id, $data->type);
         }
 
         $updatedCategory = new Category(
-            id: $data->id,
+            id: $id,
             name: $data->name,
             type: $data->type,
             code: $data->code,
@@ -71,6 +71,13 @@ final class UpdateCategoryHandler
             createdAt: $category->getCreatedAt(),
             updatedAt: new DateTimeImmutable(),
         );
+
+        // Handle archive status
+        if ($data->status === \App\Domain\Categories\ValueObjects\CategoryStatus::ARCHIVED && !$category->isArchived()) {
+            $updatedCategory->archive(new DateTimeImmutable());
+        } elseif ($data->status === \App\Domain\Categories\ValueObjects\CategoryStatus::ACTIVE && $category->isArchived()) {
+            $updatedCategory->restore(new DateTimeImmutable());
+        }
 
         $this->categoryRepository->save($updatedCategory);
 

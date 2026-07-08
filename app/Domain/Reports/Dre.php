@@ -6,6 +6,7 @@ namespace App\Domain\Reports;
 
 use App\Domain\Shared\Money;
 use App\Domain\Reports\ValueObjects\DreLine;
+use App\Domain\Reports\ValueObjects\DreLineType;
 use App\Domain\Reports\ValueObjects\DrePeriod;
 use DateTimeImmutable;
 

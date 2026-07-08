@@ -7,8 +7,8 @@ namespace App\Domain\Transactions;
 use App\Domain\BankAccounts\ValueObjects\BankAccountId;
 use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Shared\Money;
-use App\Domain\Transactions\ValueObjects\TransactionId;
-use App\Domain\Transactions\ValueObjects\TransactionStatus;
+use App\Domain\Transactions\TransactionId;
+use App\Domain\Transactions\TransactionStatus;
 
 interface TransactionRepositoryInterface
 {
@@ -40,4 +40,6 @@ interface TransactionRepositoryInterface
     public function delete(TransactionId $id): void;
 
     public function getBalanceForBankAccount(BankAccountId $bankAccountId): Money;
+
+    public function listLatest(int $limit = 50): array;
 }

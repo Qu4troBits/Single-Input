@@ -12,7 +12,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { BankAccountType } from '@/Types/BankAccount';
+// import { BankAccountType } from '@/types/bank-account'; // Note: Define BankAccountType if needed
 
 interface Props extends PageProps {
     bankAccountTypes: Array<{ value: string; label: string }>;
@@ -32,9 +32,9 @@ const formSchema = z.object({
     description: z.string().max(1000, 'A descrição deve ter no máximo 1000 caracteres').optional(),
     color: z.string().regex(/^#[0-9A-F]{6}$/i, 'A cor deve estar no formato hexadecimal (#RRGGBB)').optional(),
     icon: z.string().max(50, 'O ícone deve ter no máximo 50 caracteres').optional(),
-    include_in_dashboard: z.boolean().default(true),
-    include_in_reports: z.boolean().default(true),
-    is_default: z.boolean().default(false),
+    include_in_dashboard: z.boolean(),
+    include_in_reports: z.boolean(),
+    is_default: z.boolean(),
 });
 
 type FormData = z.infer<typeof formSchema>;

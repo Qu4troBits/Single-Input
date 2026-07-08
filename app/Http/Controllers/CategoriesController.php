@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers; 
 
 use App\Application\Categories\DTOs\CreateCategoryData;
 use App\Application\Categories\DTOs\UpdateCategoryData;

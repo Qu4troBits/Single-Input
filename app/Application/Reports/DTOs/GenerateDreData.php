@@ -135,10 +135,53 @@ final readonly class GenerateDreData
             'year_month' => $this->yearMonth,
             'year' => $this->year,
             'quarter' => $this->quarter,
+            'quarterly' => $this->quarter,
             'category_id' => $this->categoryId,
             'scenario' => $this->scenario,
             'start_date' => $this->startDate,
             'end_date' => $this->endDate,
         ];
+    }
+
+    public static function forMonthly(string $yearMonth, ?string $categoryId = null, string $scenario = 'base'): self
+    {
+        return new self(
+            periodType: 'monthly',
+            yearMonth: $yearMonth,
+            categoryId: $categoryId,
+            scenario: $scenario,
+        );
+    }
+
+    public static function forQuarterly(string $year, int $quarter, ?string $categoryId = null, string $scenario = 'base'): self
+    {
+        return new self(
+            periodType: 'quarterly',
+            year: $year,
+            quarter: $quarter,
+            categoryId: $categoryId,
+            scenario: $scenario,
+        );
+    }
+
+    public static function forYearly(string $year, ?string $categoryId = null, string $scenario = 'base'): self
+    {
+        return new self(
+            periodType: 'yearly',
+            year: $year,
+            categoryId: $categoryId,
+            scenario: $scenario,
+        );
+    }
+
+    public static function forCustom(\DateTimeImmutable $startDate, \DateTimeImmutable $endDate, ?string $categoryId = null, string $scenario = 'base'): self
+    {
+        return new self(
+            periodType: 'custom',
+            startDate: $startDate->format('Y-m-d'),
+            endDate: $endDate->format('Y-m-d'),
+            categoryId: $categoryId,
+            scenario: $scenario,
+        );
     }
 }

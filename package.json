@@ -6,6 +6,7 @@
         "dev": "vite"
     },
     "dependencies": {
+        "@hookform/resolvers": "^5.4.0",
         "@inertiajs/core": "^2.0.0",
         "@inertiajs/react": "^2.0.0",
         "class-variance-authority": "^0.7.1",
@@ -13,8 +14,10 @@
         "lucide-react": "^1.21.0",
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
+        "react-hook-form": "^7.81.0",
         "tailwind-merge": "^3.6.0",
-        "ziggy-js": "^2.6.3"
+        "ziggy-js": "^2.6.3",
+        "zod": "^4.4.3"
     },
     "devDependencies": {
         "@types/node": "^26.0.1",
