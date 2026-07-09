@@ -9,6 +9,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { PageProps } from '@/types';
 import { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
 
 interface EditProps extends PageProps {
     projection: {
@@ -77,7 +78,7 @@ export default function Edit({ auth, projection, categories }: EditProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('financial-projections.update', { projectionId: projection.id }), {
+        router.put(route('financial-projections.update', { projectionId: projection.id }), {
             data: {
                 ...data,
                 items: items.map(item => ({
@@ -107,7 +108,7 @@ export default function Edit({ auth, projection, categories }: EditProps) {
     };
 
     const updateItem = (id: string, field: keyof ProjectionItemForm, value: string) => {
-        setItems(items.map(item => 
+        setItems(items.map(item =>
             item.id === id ? { ...item, [field]: value } : item
         ));
     };
@@ -123,25 +124,21 @@ export default function Edit({ auth, projection, categories }: EditProps) {
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" asChild>
-                        <Link href={route('financial-projections.show', { projectionId: projection.id })}>
-                            <ArrowLeft className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Editar Projeção Financeira</h2>
-                        <p className="text-muted-foreground">
-                            Atualize os dados da projeção "{projection.title}"
-                        </p>
-                    </div>
-                </div>
-            }
         >
             <Head title={`Editar: ${projection.title}`} />
-
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" asChild>
+                    <Link href={route('financial-projections.show', { projectionId: projection.id })}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Link>
+                </Button>
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Editar Projeção Financeira</h2>
+                    <p className="text-muted-foreground">
+                        Atualize os dados da projeção "{projection.title}"
+                    </p>
+                </div>
+            </div>
             <div className="max-w-4xl mx-auto">
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-6">

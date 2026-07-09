@@ -9,6 +9,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { PageProps } from '@/types';
 import { useState } from 'react';
+import { router } from '@inertiajs/react';
 
 interface CreateProps extends PageProps {
     categories: Array<{
@@ -53,7 +54,7 @@ export default function Create({ auth, categories }: CreateProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('financial-projections.store'), {
+        router.post(route('financial-projections.store'), {
             data: {
                 ...data,
                 items: items.map(item => ({
@@ -83,7 +84,7 @@ export default function Create({ auth, categories }: CreateProps) {
     };
 
     const updateItem = (id: string, field: keyof ProjectionItemForm, value: string) => {
-        setItems(items.map(item => 
+        setItems(items.map(item =>
             item.id === id ? { ...item, [field]: value } : item
         ));
     };
@@ -99,25 +100,21 @@ export default function Create({ auth, categories }: CreateProps) {
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" asChild>
-                        <Link href={route('financial-projections.index')}>
-                            <ArrowLeft className="h-4 w-4" />
-                        </Link>
-                    </Button>
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Nova Projeção Financeira</h2>
-                        <p className="text-muted-foreground">
-                            Crie uma projeção financeira para planejamento
-                        </p>
-                    </div>
-                </div>
-            }
         >
             <Head title="Nova Projeção Financeira" />
-
+            <div className="flex items-center gap-4">
+                <Button variant="outline" size="icon" asChild>
+                    <Link href={route('financial-projections.index')}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Link>
+                </Button>
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Nova Projeção Financeira</h2>
+                    <p className="text-muted-foreground">
+                        Crie uma projeção financeira para planejamento
+                    </p>
+                </div>
+            </div>
             <div className="max-w-4xl mx-auto">
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-6">

@@ -1,4 +1,4 @@
-import { Badge } from '@/Components/ui/badge';
+import { Badge } from '@/Components/ui/badge'; 
 import { CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react';
 
 export type TransactionStatus = 'pending' | 'paid' | 'cancelled' | 'reversed';

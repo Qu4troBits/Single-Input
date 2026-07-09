@@ -6,6 +6,12 @@ export * from './reports';
 export * from './bank-reconciliation';
 export * from './financial-projections';
 
+
+export interface Tenant {
+    id: string;
+    name: string;
+}
+
 export interface User {
     id: string;
     name: string;
@@ -14,6 +20,7 @@ export interface User {
     two_factor_enabled: boolean;
     created_at: string;
     updated_at: string;
+    current_tenant?: Tenant | null;
 }
 
 export interface PageProps {
@@ -27,4 +34,5 @@ export interface PageProps {
         info?: string;
     };
     errors?: Record<string, string>;
+    [key: string]: unknown;
 }

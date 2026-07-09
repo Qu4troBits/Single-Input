@@ -18,13 +18,13 @@ interface FinancialProjectionsIndexProps extends PageProps {
     current_month: string;
 }
 
-export default function Index({ 
-    auth, 
-    recent_projections, 
-    available_scenarios, 
+export default function Index({
+    auth,
+    recent_projections,
+    available_scenarios,
     categories,
     current_year,
-    current_month 
+    current_month
 }: FinancialProjectionsIndexProps) {
     const getProjectionTypeColor = (type: string) => {
         switch (type) {
@@ -59,32 +59,28 @@ export default function Index({
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Projeções Financeiras</h2>
-                        <p className="text-muted-foreground">
-                            Planejamento e projeções financeiras para sua empresa
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button asChild>
-                            <Link href={route('financial-projections.create')}>
-                                Nova Projeção
-                            </Link>
-                        </Button>
-                        <Button variant="outline" asChild>
-                            <Link href={route('financial-projections.generate')}>
-                                Gerar Projeção
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-            }
         >
             <Head title="Projeções Financeiras" />
-
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Projeções Financeiras</h2>
+                    <p className="text-muted-foreground">
+                        Planejamento e projeções financeiras para sua empresa
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button asChild>
+                        <Link href={route('financial-projections.create')}>
+                            Nova Projeção
+                        </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                        <Link href={route('financial-projections.generate')}>
+                            Gerar Projeção
+                        </Link>
+                    </Button>
+                </div>
+            </div>
             <div className="space-y-6">
                 {/* Resumo Rápido */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -210,16 +206,20 @@ export default function Index({
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
-                                                    <Button size="sm" variant="outline" asChild>
-                                                        <Link href={route('financial-projections.show', projection.id)}>
-                                                            Ver
-                                                        </Link>
-                                                    </Button>
-                                                    <Button size="sm" variant="outline" asChild>
-                                                        <Link href={route('financial-projections.edit', projection.id)}>
-                                                            Editar
-                                                        </Link>
-                                                    </Button>
+                                                    {projection.id && (
+                                                        <>
+                                                            <Button size="sm" variant="outline" asChild>
+                                                                <Link href={route('financial-projections.show', { projection: projection.id })}>
+                                                                    Ver
+                                                                </Link>
+                                                            </Button>
+                                                            <Button size="sm" variant="outline" asChild>
+                                                                <Link href={route('financial-projections.edit', { projection: projection.id })}>
+                                                                    Editar
+                                                                </Link>
+                                                            </Button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -316,9 +316,9 @@ export default function Index({
                                         <div key={scenario} className="flex items-center justify-between">
                                             <span className="text-sm">{scenario}</span>
                                             <Badge variant="outline">
-                                                {scenario === 'base' ? 'Padrão' : 
-                                                 scenario === 'optimistic' ? 'Otimista' : 
-                                                 scenario === 'pessimistic' ? 'Pessimista' : 'Personalizado'}
+                                                {scenario === 'base' ? 'Padrão' :
+                                                    scenario === 'optimistic' ? 'Otimista' :
+                                                        scenario === 'pessimistic' ? 'Pessimista' : 'Personalizado'}
                                             </Badge>
                                         </div>
                                     ))}
@@ -331,8 +331,8 @@ export default function Index({
                                     {categories.map((category) => (
                                         <div key={category.id} className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <div 
-                                                    className="w-3 h-3 rounded-full" 
+                                                <div
+                                                    className="w-3 h-3 rounded-full"
                                                     style={{ backgroundColor: category.color || '#6b7280' }}
                                                 />
                                                 <span className="text-sm">{category.name}</span>

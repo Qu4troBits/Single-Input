@@ -6,8 +6,8 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Separator } from '@/Components/ui/separator';
-import { formatBRL } from '@/Types/Money';
-import { BankAccountType, BankAccountStatus } from '@/Types/BankAccount';
+import { formatBRL } from '@/Utils/formatCurrency';
+import { BankAccountType, BankAccountStatus } from '@/types/bank-account';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/Components/ui/alert-dialog';
 
 interface BankAccount {
@@ -42,9 +42,9 @@ export default function BankAccountShow({ bankAccount }: Props) {
 
     const handleDelete = async () => {
         setIsDeleting(true);
-        
+
         try {
-            await router.delete(route('bank-accounts.destroy', bankAccount.id));
+            await router.delete(route('bank-accounts.destroy', { bank_account: bankAccount.id }));
         } catch (error) {
             setIsDeleting(false);
             setShowDeleteConfirm(false);
@@ -53,14 +53,12 @@ export default function BankAccountShow({ bankAccount }: Props) {
 
     const getStatusBadgeVariant = (status: BankAccountStatus) => {
         switch (status) {
-            case BankAccountStatus.ACTIVE:
+            case 'active':
                 return 'success';
-            case BankAccountStatus.INACTIVE:
+            case 'inactive':
                 return 'secondary';
-            case BankAccountStatus.CLOSED:
+            case 'blocked':
                 return 'destructive';
-            case BankAccountStatus.BLOCKED:
-                return 'warning';
             default:
                 return 'default';
         }
@@ -68,32 +66,28 @@ export default function BankAccountShow({ bankAccount }: Props) {
 
     const getStatusLabel = (status: BankAccountStatus) => {
         switch (status) {
-            case BankAccountStatus.ACTIVE:
-                return 'Ativa';
-            case BankAccountStatus.INACTIVE:
-                return 'Inativa';
-            case BankAccountStatus.CLOSED:
-                return 'Encerrada';
-            case BankAccountStatus.BLOCKED:
-                return 'Bloqueada';
+            case 'active':
+                return 'success';
+            case 'inactive':
+                return 'secondary';
+            case 'blocked':
+                return 'destructive';
             default:
-                return status;
+                return 'default';
         }
     };
 
     const getTypeLabel = (type: BankAccountType) => {
         switch (type) {
-            case BankAccountType.CHECKING:
+            case 'checking':
                 return 'Conta Corrente';
-            case BankAccountType.SAVINGS:
+            case 'savings':
                 return 'Conta Poupança';
-            case BankAccountType.INVESTMENT:
+            case 'investment':
                 return 'Conta Investimento';
-            case BankAccountType.CREDIT_CARD:
-                return 'Cartão de Crédito';
-            case BankAccountType.WALLET:
+            case 'wallet':
                 return 'Carteira Digital';
-            case BankAccountType.OTHER:
+            case 'other':
                 return 'Outro';
             default:
                 return type;
@@ -135,7 +129,7 @@ export default function BankAccountShow({ bankAccount }: Props) {
                                 Voltar
                             </Button>
                         </Link>
-                        <Link href={route('bank-accounts.edit', bankAccount.id)}>
+                        <Link href={route('bank-accounts.edit', { bank_account: bankAccount.id })}>
                             <Button>
                                 Editar
                             </Button>
@@ -318,7 +312,7 @@ export default function BankAccountShow({ bankAccount }: Props) {
                                             Cor
                                         </h3>
                                         <div className="flex items-center gap-2">
-                                            <div 
+                                            <div
                                                 className="w-6 h-6 rounded-full border"
                                                 style={{ backgroundColor: bankAccount.color }}
                                             />
@@ -350,7 +344,7 @@ export default function BankAccountShow({ bankAccount }: Props) {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <Link href={route('bank-accounts.edit', bankAccount.id)} className="w-full">
+                                <Link href={route('bank-accounts.edit', { bank_account: bankAccount.id })} className="w-full">
                                     <Button variant="outline" className="w-full">
                                         Editar Conta
                                     </Button>

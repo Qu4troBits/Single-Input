@@ -13,7 +13,7 @@ import { ArrowLeft, Download, Edit, Trash2, BarChart3, AlertCircle } from 'lucid
 interface DreLine {
   id: string;
   code: string;
-  description: string;
+  description: string; 
   amount: string;
   formatted_amount: string;
   type: string;
@@ -124,14 +124,14 @@ export default function DreShow({ dre }: Props) {
   };
 
   const handleExport = () => {
-    router.get(route('dres.download-export', dre.id), { format: selectedFormat });
+    router.get(route('dres.download-export', { dre: dre.id }), { format: selectedFormat });
   };
 
   const handleDelete = async () => {
     setIsDeleting(true);
     
     try {
-      await router.delete(route('dres.destroy', dre.id), {
+      await router.delete(route('dres.destroy', { dre: dre.id }), {
         onSuccess: () => {
           router.visit(route('dres.index'));
         },
@@ -240,7 +240,7 @@ export default function DreShow({ dre }: Props) {
             
             <Button
               variant="outline"
-              onClick={() => router.visit(route('dres.edit', dre.id))}
+              onClick={() => router.visit(route('dres.edit', { dre: dre.id }))}
             >
               <Edit className="mr-2 h-4 w-4" />
               Editar
@@ -481,7 +481,7 @@ export default function DreShow({ dre }: Props) {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => router.visit(route('dres.ratios', dre.id))}
+                  onClick={() => router.visit(route('dres.ratios', { dre: dre.id }))}
                 >
                   <BarChart3 className="mr-2 h-4 w-4" />
                   Ver Índices Financeiros

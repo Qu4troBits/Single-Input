@@ -1,4 +1,4 @@
-import { formatBRL } from '@/Utils/formatCurrency';
+import { formatBRL } from '@/Utils/formatCurrency'; 
 
 interface MoneyDisplayProps {
   amount: string | number;

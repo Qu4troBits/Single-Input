@@ -4,7 +4,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { PageProps } from '@/types';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
-import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -12,7 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { BankAccountType, BankAccountStatus } from '@/Types/BankAccount';
+import { BankAccountType, BankAccountStatus } from '@/types/bank-account';
 
 interface BankAccount {
     id: string;
@@ -92,7 +91,7 @@ export default function BankAccountEdit({ bankAccount, bankAccountTypes, bankAcc
         setIsSubmitting(true);
         
         try {
-            await router.put(route('bank-accounts.update', bankAccount.id), data, {
+            await router.put(route('bank-accounts.update', { bank_account: bankAccount.id }), data, {
                 onSuccess: () => {
                     // Redirecionamento será feito pelo controller
                 },
@@ -141,7 +140,7 @@ export default function BankAccountEdit({ bankAccount, bankAccountTypes, bankAcc
                                 Voltar
                             </Button>
                         </Link>
-                        <Link href={route('bank-accounts.show', bankAccount.id)}>
+                        <Link href={route('bank-accounts.show', { bank_account: bankAccount.id })}>
                             <Button variant="outline">
                                 Ver Detalhes
                             </Button>

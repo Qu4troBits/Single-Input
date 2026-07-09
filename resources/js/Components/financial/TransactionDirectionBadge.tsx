@@ -1,4 +1,4 @@
-import { Badge } from '@/Components/ui/badge';
+import { Badge } from '@/Components/ui/badge'; 
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export type TransactionDirection = 'in' | 'out';

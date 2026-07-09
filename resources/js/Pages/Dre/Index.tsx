@@ -14,7 +14,7 @@ import { Search, Plus, Download, BarChart3, Filter } from 'lucide-react';
 interface Dre {
   id: string;
   title: string;
-  period: {
+  period: { 
     start: string;
     end: string;
     type: string;
@@ -104,7 +104,7 @@ export default function DreIndex({ dres, filters, categories }: Props) {
   };
 
   const handleExport = (dreId: string, format: string) => {
-    router.get(route('dres.download-export', dreId), { format });
+    router.get(route('dres.download-export', { dre: dreId }), { format });
   };
 
   const getScenarioBadge = (scenario: string) => {
@@ -322,7 +322,7 @@ export default function DreIndex({ dres, filters, categories }: Props) {
                   dres.data.map((dre) => (
                     <TableRow key={dre.id}>
                       <TableCell className="font-medium">
-                        <Link href={route('dres.show', dre.id)} className="hover:underline">
+                        <Link href={route('dres.show', { dre: dre.id })} className="hover:underline">
                           {dre.title}
                         </Link>
                       </TableCell>
@@ -375,7 +375,7 @@ export default function DreIndex({ dres, filters, categories }: Props) {
                             size="sm"
                             asChild
                           >
-                            <Link href={route('dres.edit', dre.id)}>
+                            <Link href={route('dres.edit', { dre: dre.id })}>
                               Editar
                             </Link>
                           </Button>
@@ -396,7 +396,7 @@ export default function DreIndex({ dres, filters, categories }: Props) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => router.get(dres.meta.current_page > 1 ? dres.meta.current_page - 1 : 1, localFilters, {
+                    onClick={() => router.get(route('dres.index', { page: dres.meta.current_page > 1 ? dres.meta.current_page - 1 : 1 }), localFilters, {
                       preserveState: true,
                       preserveScroll: true,
                     })}
@@ -410,7 +410,7 @@ export default function DreIndex({ dres, filters, categories }: Props) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => router.get(dres.meta.current_page < dres.meta.last_page ? dres.meta.current_page + 1 : dres.meta.last_page, localFilters, {
+                    onClick={() => router.get(route('dres.index', { page: dres.meta.current_page < dres.meta.last_page ? dres.meta.current_page + 1 : dres.meta.last_page }), localFilters, {
                       preserveState: true,
                       preserveScroll: true,
                     })}

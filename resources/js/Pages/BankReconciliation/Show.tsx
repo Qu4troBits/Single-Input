@@ -43,40 +43,35 @@ export default function Show({ auth, bank_account, pending_items, summary }: Ban
     );
 
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">
-                            Conciliação: {bank_account.name}
-                        </h2>
-                        <p className="text-muted-foreground">
-                            Banco: {bank_account.bank_name} • Agência: {bank_account.agency} • Conta: {bank_account.account_number}
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href={route('bank-reconciliation.index')}>
-                                Voltar
-                            </Link>
-                        </Button>
-                        <Button asChild>
-                            <Link href={route('bank-reconciliation.import.form', bank_account.id)}>
-                                Importar Extrato
-                            </Link>
-                        </Button>
-                        <Button asChild>
-                            <Link href={route('bank-reconciliation.reconcile.form', bank_account.id)}>
-                                Conciliação Manual
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title={`Conciliação: ${bank_account.name}`} />
-
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        Conciliação: {bank_account.name}
+                    </h2>
+                    <p className="text-muted-foreground">
+                        Banco: {bank_account.bank_name} • Agência: {bank_account.agency} • Conta: {bank_account.account_number}
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href={route('bank-reconciliation.index')}>
+                            Voltar
+                        </Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href={route('bank-reconciliation.import.form', { bank_account: bank_account.id })}>
+                            Importar Extrato
+                        </Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href={route('bank-reconciliation.reconcile.form', { bank_account: bank_account.id })}>
+                            Conciliação Manual
+                        </Link>
+                    </Button>
+                </div>
+            </div>
             <div className="space-y-6">
                 {/* Resumo */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -160,7 +155,7 @@ export default function Show({ auth, bank_account, pending_items, summary }: Ban
                         </CardHeader>
                         <CardContent>
                             <Button variant="destructive" asChild>
-                                <Link href={route('bank-reconciliation.reconcile.form', bank_account.id)}>
+                                <Link href={route('bank-reconciliation.reconcile.form', { bank_account: bank_account.id })}>
                                     Resolver Divergências
                                 </Link>
                             </Button>
@@ -216,7 +211,7 @@ export default function Show({ auth, bank_account, pending_items, summary }: Ban
                                             <TableCell>
                                                 {item.transaction_id ? (
                                                     <Link
-                                                        href={route('transactions.edit', item.transaction_id)}
+                                                        href={route('transactions.edit', { transaction: item.transaction_id })}
                                                         className="text-blue-600 hover:underline text-sm"
                                                     >
                                                         Ver Transação
@@ -240,7 +235,7 @@ export default function Show({ auth, bank_account, pending_items, summary }: Ban
                                             </TableCell>
                                             <TableCell>
                                                 <Button size="sm" variant="outline" asChild>
-                                                    <Link href={route('bank-reconciliation.reconcile.form', bank_account.id)}>
+                                                    <Link href={route('bank-reconciliation.reconcile.form', { bank_account: bank_account.id })}>
                                                         Conciliação
                                                     </Link>
                                                 </Button>

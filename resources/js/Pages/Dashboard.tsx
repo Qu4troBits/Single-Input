@@ -1,11 +1,6 @@
 import React from 'react'
 import { Link, useForm, usePage } from '@inertiajs/react'
-
-interface PageProps {
-  auth: {
-    user: { id: number; email: string; name: string } | null
-  }
-}
+import { PageProps } from '@/types';
 
 export default function Dashboard(): React.JSX.Element {
   const { auth } = usePage<PageProps>().props
@@ -15,7 +10,7 @@ export default function Dashboard(): React.JSX.Element {
     <div style={{ maxWidth: 720, margin: '40px auto', fontFamily: 'system-ui' }}>
       <h1>Dashboard</h1>
       <div style={{ marginTop: 12 }}>
-        {auth.user ? (
+        {auth.user ? ( 
           <div>
             Logado como <strong>{auth.user.email}</strong>
           </div>

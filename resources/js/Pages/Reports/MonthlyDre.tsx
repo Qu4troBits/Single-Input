@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
@@ -89,40 +89,36 @@ export default function MonthlyDre({ report, period }: MonthlyDreProps) {
 
   return (
     <AuthenticatedLayout
-      user={auth.user}
-      header={
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">DRE Mensal</h2>
-            <p className="text-muted-foreground">
-              {formatPeriod(period)}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleShare}>
-              <Share2 className="mr-2 h-4 w-4" />
-              Compartilhar
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Imprimir
-            </Button>
-            <Link href={route('reports.index')}>
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar
-              </Button>
-            </Link>
-          </div>
-        </div>
-      }
     >
       <Head title={`DRE Mensal - ${formatPeriod(period)}`} />
-
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">DRE Mensal</h2>
+          <p className="text-muted-foreground">
+            {formatPeriod(period)}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={handleShare}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Compartilhar
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleDownload}>
+            <Download className="mr-2 h-4 w-4" />
+            Download
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimir
+          </Button>
+          <Link href={route('reports.index')}>
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar
+            </Button>
+          </Link>
+        </div>
+      </div>
       <div className="space-y-6">
         {/* Resumo do relatório */}
         <Card>
@@ -155,7 +151,7 @@ export default function MonthlyDre({ report, period }: MonthlyDreProps) {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Margem de Lucro</p>
                 <p className={`text-2xl font-bold ${parseFloat(report.summary.net_profit) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                  {report.summary.total_revenue === '0.00' ? '0.00%' : 
+                  {report.summary.total_revenue === '0.00' ? '0.00%' :
                     `${((parseFloat(report.summary.net_profit) / parseFloat(report.summary.total_revenue)) * 100).toFixed(2)}%`}
                 </p>
               </div>
@@ -182,7 +178,7 @@ export default function MonthlyDre({ report, period }: MonthlyDreProps) {
 
               {/* Itens do relatório */}
               {report.items.map((item) => (
-                <div 
+                <div
                   key={`${item.code}-${item.description}`}
                   className={`grid grid-cols-12 gap-4 py-2 ${getItemIndent(item)}`}
                 >
@@ -211,7 +207,7 @@ export default function MonthlyDre({ report, period }: MonthlyDreProps) {
 
               {/* Linhas de separação para itens de lucro */}
               <div className="border-t border-gray-200 my-4"></div>
-              
+
               {/* Totais */}
               <div className="space-y-2">
                 <div className="grid grid-cols-12 gap-4 py-2">
@@ -220,14 +216,14 @@ export default function MonthlyDre({ report, period }: MonthlyDreProps) {
                     +{formatBRL(report.summary.total_revenue)}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-12 gap-4 py-2">
                   <div className="col-span-8 font-semibold text-right">Total Despesas:</div>
                   <div className="col-span-4 text-right font-bold text-red-600">
                     -{formatBRL(report.summary.total_expenses)}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-12 gap-4 py-2 border-t border-gray-300 pt-4">
                   <div className="col-span-8 font-bold text-right">Lucro Líquido:</div>
                   <div className={`col-span-4 text-right font-bold ${parseFloat(report.summary.net_profit) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>

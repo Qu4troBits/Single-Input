@@ -12,6 +12,7 @@ import { BankAccount, ReconciliationItem, Transaction } from '@/types';
 import { useState } from 'react';
 import { formatBRL } from '@/Utils/formatCurrency';
 import { formatDate } from '@/Utils/formatDate';
+import { number } from 'zod';
 
 interface BankReconciliationReconcileProps extends PageProps {
     bank_account: BankAccount;
@@ -53,7 +54,7 @@ export default function Reconcile({ auth, bank_account, pending_items, transacti
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('bank-reconciliation.reconcile', bank_account.id));
+        post(route('bank-reconciliation.reconcile', { bank_account: bank_account.id }));
     };
 
     const updateItemStatus = (itemId: string, newStatus: ReconciliationFormItem['status']) => {
@@ -98,29 +99,25 @@ export default function Reconcile({ auth, bank_account, pending_items, transacti
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">
-                            Conciliação Manual
-                        </h2>
-                        <p className="text-muted-foreground">
-                            Conta: {bank_account.name} • Banco: {bank_account.bank_name}
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href={route('bank-reconciliation.show', bank_account.id)}>
-                                Voltar
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-            }
         >
             <Head title={`Conciliação Manual: ${bank_account.name}`} />
-
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        Conciliação Manual
+                    </h2>
+                    <p className="text-muted-foreground">
+                        Conta: {bank_account.name} • Banco: {bank_account.bank_name}
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href={route('bank-reconciliation.show', { bank_account: bank_account.id })}>
+                            Voltar
+                        </Link>
+                    </Button>
+                </div>
+            </div>
             <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Painel de Associação */}
@@ -220,9 +217,10 @@ export default function Reconcile({ auth, bank_account, pending_items, transacti
                                                     <div className="flex gap-2">
                                                         <Select
                                                             value={item.status}
-                                                            onValueChange={(value: ReconciliationFormItem['status']) =>
-                                                                updateItemStatus(item.id, value)
-                                                            }
+                                                            onValueChange={(value) => updateItemStatus(
+                                                                    item.id,
+                                                                    value as ReconciliationFormItem['status']
+                                                                )}
                                                         >
                                                             <SelectTrigger className="w-32">
                                                                 <SelectValue />
@@ -330,10 +328,6 @@ export default function Reconcile({ auth, bank_account, pending_items, transacti
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Conta:</span>
                                     <span>{bank_account.account_number}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Tipo:</span>
-                                    <span>{bank_account.type === 'checking' ? 'Corrente' : 'Poupança'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Saldo Inicial:</span>

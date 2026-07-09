@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
@@ -56,7 +56,7 @@ export default function Edit({ transaction, bankAccounts, categories }: Transact
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    put(route('transactions.update', transaction.id));
+    put(route('transactions.update', { id: transaction.id }));
   };
 
   const getStatusIcon = (status: Transaction['status']) => {
@@ -88,7 +88,7 @@ export default function Edit({ transaction, bankAccounts, categories }: Transact
   const generateCompetenceMonths = () => {
     const months = [];
     const currentDate = new Date();
-    
+
     // Últimos 12 meses
     for (let i = 0; i < 12; i++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
@@ -99,10 +99,10 @@ export default function Edit({ transaction, bankAccounts, categories }: Transact
         month: 'long',
         year: 'numeric',
       });
-      
+
       months.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
     }
-    
+
     return months;
   };
 
@@ -110,26 +110,22 @@ export default function Edit({ transaction, bankAccounts, categories }: Transact
 
   return (
     <AuthenticatedLayout
-      user={auth.user}
-      header={
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Editar Lançamento</h2>
-            <p className="text-muted-foreground">
-              Atualize os dados da transação financeira
-            </p>
-          </div>
-          <Link href={route('transactions.index')}>
-            <Button variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
-          </Link>
-        </div>
-      }
     >
       <Head title="Editar Lançamento" />
-
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Editar Lançamento</h2>
+          <p className="text-muted-foreground">
+            Atualize os dados da transação financeira
+          </p>
+        </div>
+        <Link href={route('transactions.index')}>
+          <Button variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+        </Link>
+      </div>
       <div className="max-w-2xl mx-auto">
         {/* Informações da transação */}
         <Card className="mb-6">
@@ -158,7 +154,7 @@ export default function Edit({ transaction, bankAccounts, categories }: Transact
                 <p>{new Date(transaction.updated_at).toLocaleDateString('pt-BR')}</p>
               </div>
             </div>
-            
+
             {transaction.payment_date && (
               <div>
                 <Label className="text-muted-foreground">Data de Pagamento</Label>
@@ -329,7 +325,7 @@ export default function Edit({ transaction, bankAccounts, categories }: Transact
                 <div className="flex items-center gap-4">
                   {transaction.status === 'pending' && (
                     <Link
-                      href={route('transactions.markAsPaid', transaction.id)}
+                      href={route('transactions.markAsPaid', { id: transaction.id })}
                       method="post"
                       as="button"
                     >
@@ -341,7 +337,7 @@ export default function Edit({ transaction, bankAccounts, categories }: Transact
                   )}
                   {transaction.status === 'pending' && (
                     <Link
-                      href={route('transactions.markAsCancelled', transaction.id)}
+                      href={route('transactions.markAsCancelled', { id: transaction.id })}
                       method="post"
                       as="button"
                     >

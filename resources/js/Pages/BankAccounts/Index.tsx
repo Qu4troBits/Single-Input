@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
-import { formatBRL } from '@/Types/Money';
-import { BankAccountType, BankAccountStatus } from '@/Types/BankAccount';
+import { formatBRL } from '@/Utils/formatCurrency';
+import { BankAccountType, BankAccountStatus } from '@/types/bank-account';
 
 interface BankAccount {
     id: string;
@@ -52,15 +52,15 @@ interface Props extends PageProps {
         is_default?: boolean;
     };
     bankAccountTypes: Array<{ value: string; label: string }>;
-    bankAccountStatuses: Array<{ value: string; label: string }>;
+    bankAccountStatus: Array<{ value: string; label: string }>;
 }
 
-export default function BankAccountIndex({ 
-    bankAccounts, 
-    meta, 
-    filters, 
-    bankAccountTypes, 
-    bankAccountStatuses 
+export default function BankAccountIndex({
+    bankAccounts,
+    meta,
+    filters,
+    bankAccountTypes,
+    bankAccountStatus
 }: Props) {
     const [localFilters, setLocalFilters] = useState({
         type: filters.type || '',
@@ -92,14 +92,12 @@ export default function BankAccountIndex({
 
     const getStatusBadgeVariant = (status: BankAccountStatus) => {
         switch (status) {
-            case BankAccountStatus.ACTIVE:
+            case 'active':
                 return 'success';
-            case BankAccountStatus.INACTIVE:
+            case 'inactive':
                 return 'secondary';
-            case BankAccountStatus.CLOSED:
+            case 'blocked':
                 return 'destructive';
-            case BankAccountStatus.BLOCKED:
-                return 'warning';
             default:
                 return 'default';
         }
@@ -110,7 +108,7 @@ export default function BankAccountIndex({
     };
 
     const getStatusLabel = (status: BankAccountStatus) => {
-        return bankAccountStatuses.find(s => s.value === status)?.label || status;
+        return bankAccountStatus.find(s => s.value === status)?.label || status;
     };
 
     const getFullAccountNumber = (account: BankAccount) => {
@@ -176,7 +174,7 @@ export default function BankAccountIndex({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="">Todos os status</SelectItem>
-                                        {bankAccountStatuses.map((status) => (
+                                        {bankAccountStatus.map((status) => (
                                             <SelectItem key={status.value} value={status.value}>
                                                 {status.label}
                                             </SelectItem>
@@ -308,12 +306,12 @@ export default function BankAccountIndex({
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                <Link href={route('bank-accounts.show', account.id)}>
+                                                <Link href={route('bank-accounts.show', { bank_account: account.id })}>
                                                     <Button variant="ghost" size="sm">
                                                         Ver
                                                     </Button>
                                                 </Link>
-                                                <Link href={route('bank-accounts.edit', account.id)}>
+                                                <Link href={route('bank-accounts.edit', { bank_account: account.id })}>
                                                     <Button variant="ghost" size="sm">
                                                         Editar
                                                     </Button>

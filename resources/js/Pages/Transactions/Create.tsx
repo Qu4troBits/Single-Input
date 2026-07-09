@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
@@ -46,7 +46,7 @@ export default function Create({ bankAccounts, categories }: TransactionsCreateP
   const generateCompetenceMonths = () => {
     const months = [];
     const currentDate = new Date();
-    
+
     // Últimos 12 meses
     for (let i = 0; i < 12; i++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
@@ -57,10 +57,10 @@ export default function Create({ bankAccounts, categories }: TransactionsCreateP
         month: 'long',
         year: 'numeric',
       });
-      
+
       months.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
     }
-    
+
     return months;
   };
 
@@ -68,26 +68,22 @@ export default function Create({ bankAccounts, categories }: TransactionsCreateP
 
   return (
     <AuthenticatedLayout
-      user={auth.user}
-      header={
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Novo Lançamento</h2>
-            <p className="text-muted-foreground">
-              Registre uma nova transação financeira
-            </p>
-          </div>
-          <Link href={route('transactions.index')}>
-            <Button variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
-            </Button>
-          </Link>
-        </div>
-      }
     >
       <Head title="Novo Lançamento" />
-
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Novo Lançamento</h2>
+          <p className="text-muted-foreground">
+            Registre uma nova transação financeira
+          </p>
+        </div>
+        <Link href={route('transactions.index')}>
+          <Button variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+        </Link>
+      </div>
       <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>

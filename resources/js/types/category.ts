@@ -10,3 +10,6 @@ export interface Category {
     created_at: string;
     updated_at: string;
 }
+export type CategoryType = 'revenue' | 'expense' | 'transfer';
+
+export type CategoryStatus = 'active' | 'inactive' | 'archived';

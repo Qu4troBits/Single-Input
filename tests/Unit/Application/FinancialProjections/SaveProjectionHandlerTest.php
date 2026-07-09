@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 
 final class SaveProjectionHandlerTest extends TestCase
 {
-    private FinancialProjectionRepositoryInterface $projectionRepository;
+    private FinancialProjectionRepositoryInterface $projectionRepository; 
     private SaveProjectionHandler $handler;
 
     protected function setUp(): void

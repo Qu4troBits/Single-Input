@@ -66,15 +66,15 @@ export default function Show({ auth, projection }: ShowProps) {
             ];
             return `${monthNames[parseInt(month) - 1]} de ${year}`;
         }
-        
+
         if (projection.period_type === 'quarterly' && projection.year && projection.quarter) {
             return `${projection.quarter}º Trimestre de ${projection.year}`;
         }
-        
+
         if (projection.period_type === 'yearly' && projection.year) {
             return `Ano ${projection.year}`;
         }
-        
+
         return 'Período não especificado';
     };
 
@@ -101,48 +101,44 @@ export default function Show({ auth, projection }: ShowProps) {
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button variant="outline" size="icon" asChild>
-                            <Link href={route('financial-projections.index')}>
-                                <ArrowLeft className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                        <div>
-                            <h2 className="text-3xl font-bold tracking-tight">{projection.title}</h2>
-                            <p className="text-muted-foreground">
-                                Detalhes da projeção financeira
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href={route('financial-projections.edit', { projectionId: projection.id })}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Editar
-                            </Link>
-                        </Button>
-                        <Button variant="destructive" asChild>
-                            <Link
-                                href={route('financial-projections.destroy', { projectionId: projection.id })}
-                                method="delete"
-                                as="button"
-                                onBefore={() => {
-                                    return confirm('Tem certeza que deseja excluir esta projeção?');
-                                }}
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-            }
         >
             <Head title={projection.title} />
-
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" asChild>
+                        <Link href={route('financial-projections.index')}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight">{projection.title}</h2>
+                        <p className="text-muted-foreground">
+                            Detalhes da projeção financeira
+                        </p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href={route('financial-projections.edit', { projectionId: projection.id })}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                        </Link>
+                    </Button>
+                    <Button variant="destructive" asChild>
+                        <Link
+                            href={route('financial-projections.destroy', { projectionId: projection.id })}
+                            method="delete"
+                            as="button"
+                            onBefore={() => {
+                                return confirm('Tem certeza que deseja excluir esta projeção?');
+                            }}
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                        </Link>
+                    </Button>
+                </div>
+            </div>
             <div className="max-w-6xl mx-auto">
                 <div className="grid gap-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -214,7 +210,7 @@ export default function Show({ auth, projection }: ShowProps) {
                                     </div>
                                     <p className="font-medium">
                                         {projection.period_type === 'monthly' ? 'Mensal' :
-                                         projection.period_type === 'quarterly' ? 'Trimestral' : 'Anual'}
+                                            projection.period_type === 'quarterly' ? 'Trimestral' : 'Anual'}
                                     </p>
                                 </div>
                             </div>
@@ -289,7 +285,7 @@ export default function Show({ auth, projection }: ShowProps) {
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         {item.notes && (
                                             <>
                                                 <Separator className="my-3" />

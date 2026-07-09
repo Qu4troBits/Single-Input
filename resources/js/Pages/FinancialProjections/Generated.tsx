@@ -10,6 +10,7 @@ import { ArrowLeft, Download, Save, Share2 } from 'lucide-react';
 import { PageProps } from '@/types';
 import { formatBRL } from '@/Utils/formatCurrency';
 import { useState } from 'react';
+import { router } from '@inertiajs/react';
 
 interface GeneratedProps extends PageProps {
     projection: {
@@ -47,21 +48,22 @@ export default function Generated({ auth, projection, categories }: GeneratedPro
         title: projection.title,
         notes: projection.notes || '',
         scenario: projection.scenario,
+        items: projection.items,
     });
 
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = () => {
         setIsSaving(true);
-        post(route('financial-projections.store'), {
-            data: {
-                ...projection,
-                ...data,
-                items: projection.items.map(item => ({
-                    ...item,
-                    amount: parseFloat(item.amount) || 0,
-                })),
-            },
+        const payload = {
+            ...projection,
+            ...data,
+            items: projection.items.map(item => ({
+                ...item,
+                amount: parseFloat(item.amount) || 0,
+            })),
+        };
+        router.post(route('financial-projections.store'), payload, {
             onSuccess: () => {
                 setIsSaving(false);
             },
@@ -101,15 +103,15 @@ export default function Generated({ auth, projection, categories }: GeneratedPro
             ];
             return `${monthNames[parseInt(month) - 1]} de ${year}`;
         }
-        
+
         if (projection.period_type === 'quarterly' && projection.year && projection.quarter) {
             return `${projection.quarter}º Trimestre de ${projection.year}`;
         }
-        
+
         if (projection.period_type === 'yearly' && projection.year) {
             return `Ano ${projection.year}`;
         }
-        
+
         return 'Período não especificado';
     };
 
@@ -150,39 +152,35 @@ export default function Generated({ auth, projection, categories }: GeneratedPro
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button variant="outline" size="icon" asChild>
-                            <Link href={route('financial-projections.index')}>
-                                <ArrowLeft className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                        <div>
-                            <h2 className="text-3xl font-bold tracking-tight">Projeção Gerada</h2>
-                            <p className="text-muted-foreground">
-                                {getTypeLabel(projection.type)} - {getPeriodLabel()}
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={exportToCSV}>
-                            <Download className="h-4 w-4 mr-2" />
-                            Exportar CSV
-                        </Button>
-                        {!projection.is_saved && (
-                            <Button onClick={handleSave} disabled={isSaving}>
-                                <Save className="h-4 w-4 mr-2" />
-                                {isSaving ? 'Salvando...' : 'Salvar Projeção'}
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            }
         >
             <Head title={`Projeção Gerada: ${projection.title}`} />
-
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="outline" size="icon" asChild>
+                        <Link href={route('financial-projections.index')}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight">Projeção Gerada</h2>
+                        <p className="text-muted-foreground">
+                            {getTypeLabel(projection.type)} - {getPeriodLabel()}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={exportToCSV}>
+                        <Download className="h-4 w-4 mr-2" />
+                        Exportar CSV
+                    </Button>
+                    {!projection.is_saved && (
+                        <Button onClick={handleSave} disabled={isSaving}>
+                            <Save className="h-4 w-4 mr-2" />
+                            {isSaving ? 'Salvando...' : 'Salvar Projeção'}
+                        </Button>
+                    )}
+                </div>
+            </div>
             <div className="max-w-6xl mx-auto">
                 <div className="grid gap-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -244,7 +242,7 @@ export default function Generated({ auth, projection, categories }: GeneratedPro
                                     <div className="text-sm text-muted-foreground">Tipo de Período</div>
                                     <p className="font-medium">
                                         {projection.period_type === 'monthly' ? 'Mensal' :
-                                         projection.period_type === 'quarterly' ? 'Trimestral' : 'Anual'}
+                                            projection.period_type === 'quarterly' ? 'Trimestral' : 'Anual'}
                                     </p>
                                 </div>
                             </div>

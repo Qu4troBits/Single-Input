@@ -8,7 +8,7 @@ import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 interface Category {
-    id: string;
+    id: string; 
     name: string;
     type: string;
     status: string;
@@ -42,7 +42,7 @@ export default function Edit({ category, types, statuses, categories }: Props) {
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        put(route('categories.update', category.id));
+        put(route('categories.update', { category: category.id }));
     };
 
     const getTypeLabel = (type: string) => {

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
 import { Badge } from '@/Components/ui/badge';
-import { CategoryType, CategoryStatus } from '@/Types/Category';
+import { CategoryType, CategoryStatus } from '@/types/category';
 
 interface Category {
     id: string;
@@ -27,6 +27,7 @@ interface Category {
     createdAt: string;
     updatedAt: string;
     archivedAt: string | null;
+    active: boolean;
 }
 
 interface Props extends PageProps {
@@ -51,12 +52,12 @@ interface Props extends PageProps {
     categoryStatuses: Array<{ value: string; label: string }>;
 }
 
-export default function CategoryIndex({ 
-    categories, 
-    meta, 
-    filters, 
-    categoryTypes, 
-    categoryStatuses 
+export default function CategoryIndex({
+    categories,
+    meta,
+    filters,
+    categoryTypes,
+    categoryStatuses
 }: Props) {
     const [localFilters, setLocalFilters] = useState({
         type: filters.type || '',
@@ -86,14 +87,21 @@ export default function CategoryIndex({
         setLocalFilters(prev => ({ ...prev, [key]: value }));
         setIsFiltering(true);
     };
+    
+    const getCategoryStatus = (category: Category): CategoryStatus => {
+        if (category.archivedAt) {
+            return 'archived';
+        }
+        return category.active ? 'active' : 'inactive';
+    };
 
     const getStatusBadgeVariant = (status: CategoryStatus) => {
         switch (status) {
-            case CategoryStatus.ACTIVE:
+            case 'active':
                 return 'success';
-            case CategoryStatus.INACTIVE:
+            case 'inactive':
                 return 'secondary';
-            case CategoryStatus.ARCHIVED:
+            case 'archived':
                 return 'destructive';
             default:
                 return 'default';
@@ -276,98 +284,101 @@ export default function CategoryIndex({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {categories.map((category) => (
-                                    <TableRow key={category.id}>
-                                        <TableCell className="font-medium">
-                                            {category.code}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                {category.icon && (
-                                                    <span className="text-lg">{category.icon}</span>
-                                                )}
-                                                {category.name}
-                                                {category.isDefault && (
-                                                    <Badge variant="outline" className="ml-2">
-                                                        Padrão
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline">
-                                                {getTypeLabel(category.type)}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={getStatusBadgeVariant(category.status)}>
-                                                {getStatusLabel(category.status)}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {category.color && (
-                                                <div className="flex items-center space-x-2">
-                                                    <div
-                                                        className="w-4 h-4 rounded-full border"
-                                                        style={{ backgroundColor: category.color }}
-                                                    />
-                                                    <span className="text-sm">{category.color}</span>
+                                {categories.map((category) => {
+                                    const status = getCategoryStatus(category);
+                                    return (
+                                        <TableRow key={category.id}>
+                                            <TableCell className="font-medium">
+                                                {category.code}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {category.icon && (
+                                                        <span className="text-lg">{category.icon}</span>
+                                                    )}
+                                                    {category.name}
+                                                    {category.isDefault && (
+                                                        <Badge variant="outline" className="ml-2">
+                                                            Padrão
+                                                        </Badge>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {category.icon && (
-                                                <span className="text-sm">{category.icon}</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell>
-                                            {findCategoryName(category.parentId)}
-                                        </TableCell>
-                                        <TableCell>
-                                            {formatDate(category.createdAt)}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex justify-end space-x-2">
-                                                <Link href={route('categories.show', category.id)}>
-                                                    <Button variant="ghost" size="sm">
-                                                        Ver
-                                                    </Button>
-                                                </Link>
-                                                <Link href={route('categories.edit', category.id)}>
-                                                    <Button variant="ghost" size="sm">
-                                                        Editar
-                                                    </Button>
-                                                </Link>
-                                                {category.status === CategoryStatus.ACTIVE && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            if (confirm('Tem certeza que deseja arquivar esta categoria?')) {
-                                                                router.post(route('categories.archive', category.id));
-                                                            }
-                                                        }}
-                                                    >
-                                                        Arquivar
-                                                    </Button>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline">
+                                                    {getTypeLabel(category.type)}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={getStatusBadgeVariant(status)}>
+                                                    {getStatusLabel(status)}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                {category.color && (
+                                                    <div className="flex items-center space-x-2">
+                                                        <div
+                                                            className="w-4 h-4 rounded-full border"
+                                                            style={{ backgroundColor: category.color }}
+                                                        />
+                                                        <span className="text-sm">{category.color}</span>
+                                                    </div>
                                                 )}
-                                                {category.status === CategoryStatus.ARCHIVED && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => {
-                                                            if (confirm('Tem certeza que deseja restaurar esta categoria?')) {
-                                                                router.post(route('categories.restore', category.id));
-                                                            }
-                                                        }}
-                                                    >
-                                                        Restaurar
-                                                    </Button>
+                                            </TableCell>
+                                            <TableCell>
+                                                {category.icon && (
+                                                    <span className="text-sm">{category.icon}</span>
                                                 )}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                            </TableCell>
+                                            <TableCell>
+                                                {findCategoryName(category.parentId)}
+                                            </TableCell>
+                                            <TableCell>
+                                                {formatDate(category.createdAt)}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end space-x-2">
+                                                    <Link href={route('categories.show', { category: category.id })}>
+                                                        <Button variant="ghost" size="sm">
+                                                            Ver
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href={route('categories.edit', { category: category.id })}>
+                                                        <Button variant="ghost" size="sm">
+                                                            Editar
+                                                        </Button>
+                                                    </Link>
+                                                    {status === 'active' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                if (confirm('Tem certeza que deseja arquivar esta categoria?')) {
+                                                                    router.post(route('categories.archive', { category: category.id }));
+                                                                }
+                                                            }}
+                                                        >
+                                                            Arquivar
+                                                        </Button>
+                                                    )}
+                                                     {status === 'archived' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                if (confirm('Tem certeza que deseja restaurar esta categoria?')) {
+                                                                    router.post(route('categories.restore', { category: category.id }));
+                                                                }
+                                                            }}
+                                                        >
+                                                            Restaurar
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
 

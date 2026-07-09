@@ -11,7 +11,7 @@ import { formatDate } from '@/Utils/formatDate';
 import { ArrowLeft, Save, AlertCircle } from 'lucide-react';
 
 interface DreLine {
-  id: string;
+  id: string; 
   code: string;
   description: string;
   amount: string;
@@ -174,7 +174,7 @@ export default function DreEdit({ dre, categories, scenarios }: Props) {
     setIsSubmitting(true);
 
     try {
-      await router.put(route('dres.update', dre.id), formData, {
+      await router.put(route('dres.update', { dre: dre.id }), formData, {
         onSuccess: () => {
           setIsSuccess(true);
           setIsSubmitting(false);
@@ -209,7 +209,7 @@ export default function DreEdit({ dre, categories, scenarios }: Props) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.visit(route('dres.show', dre.id))}
+            onClick={() => router.visit(route('dres.show', { dre: dre.id }))}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar
@@ -543,7 +543,7 @@ export default function DreEdit({ dre, categories, scenarios }: Props) {
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() => router.visit(route('dres.show', dre.id))}
+                  onClick={() => router.visit(route('dres.show', { dre: dre.id }))}
                   disabled={isSubmitting}
                 >
                   Cancelar

@@ -15,7 +15,7 @@ final class BankAccountTest extends TestCase
 {
     public function test_it_creates_bank_account_with_correct_properties(): void
     {
-        $id = BankAccountId::generate();
+        $id = BankAccountId::generate(); 
         $initialBalance = Money::of('1000.50');
         $createdAt = new \DateTimeImmutable('2024-01-01 10:00:00');
         $updatedAt = new \DateTimeImmutable('2024-01-01 10:00:00');
@@ -173,7 +173,7 @@ final class BankAccountTest extends TestCase
         $creditCardAccount = new BankAccount(
             id: BankAccountId::generate(),
             name: 'Credit Card Account',
-            type: BankAccountType::CREDIT_CARD,
+            type: BankAccountType::OTHER,
             status: BankAccountStatus::ACTIVE,
             bankCode: null,
             agency: null,

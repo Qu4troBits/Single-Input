@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
@@ -21,7 +21,7 @@ export default function Index({ availablePeriods }: ReportsIndexProps) {
       title: 'DRE Mensal',
       description: 'Demonstrativo de Resultados do Exercício por mês',
       icon: <Calendar className="h-6 w-6" />,
-      href: route('reports.monthly.dre', currentYearMonth),
+      href: route('reports.monthly.dre', { yearMonth: currentYearMonth }),
       color: 'bg-blue-50 border-blue-200 text-blue-700',
     },
     {
@@ -35,7 +35,7 @@ export default function Index({ availablePeriods }: ReportsIndexProps) {
       title: 'DRE Anual',
       description: 'Demonstrativo de Resultados do Exercício por ano',
       icon: <FileText className="h-6 w-6" />,
-      href: route('reports.yearly.dre', currentYear),
+      href: route('reports.yearly.dre', { year: currentYear }),
       color: 'bg-purple-50 border-purple-200 text-purple-700',
     },
     {
@@ -63,18 +63,14 @@ export default function Index({ availablePeriods }: ReportsIndexProps) {
 
   return (
     <AuthenticatedLayout
-      user={auth.user}
-      header={
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Relatórios Financeiros</h2>
-          <p className="text-muted-foreground">
-            Análises e demonstrativos financeiros da sua empresa
-          </p>
-        </div>
-      }
     >
       <Head title="Relatórios Financeiros" />
-
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Relatórios Financeiros</h2>
+        <p className="text-muted-foreground">
+          Análises e demonstrativos financeiros da sua empresa
+        </p>
+      </div>
       <div className="space-y-6">
         {/* Períodos disponíveis */}
         <Card>
@@ -92,7 +88,7 @@ export default function Index({ availablePeriods }: ReportsIndexProps) {
                 availablePeriods.map((period) => (
                   <Link
                     key={period}
-                    href={route('reports.monthly.dre', period)}
+                    href={route('reports.monthly.dre', { period: period })}
                   >
                     <Button variant="outline" size="sm">
                       {new Date(period + '-01').toLocaleDateString('pt-BR', {

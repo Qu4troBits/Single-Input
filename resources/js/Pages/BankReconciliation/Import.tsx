@@ -75,34 +75,30 @@ export default function Import({ auth, bank_account }: BankReconciliationImportP
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('bank-reconciliation.import', bank_account.id));
+        post(route('bank-reconciliation.import', { bank_account: bank_account.id }));
     };
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">
-                            Importar Extrato Bancário
-                        </h2>
-                        <p className="text-muted-foreground">
-                            Conta: {bank_account.name} • Banco: {bank_account.bank_name}
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" asChild>
-                            <Link href={route('bank-reconciliation.show', bank_account.id)}>
-                                Voltar
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-            }
         >
             <Head title={`Importar Extrato: ${bank_account.name}`} />
-
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">
+                        Importar Extrato Bancário
+                    </h2>
+                    <p className="text-muted-foreground">
+                        Conta: {bank_account.name} • Banco: {bank_account.bank_name}
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button variant="outline" asChild>
+                        <Link href={route('bank-reconciliation.show', { bank_account: bank_account.id })}>
+                            Voltar
+                        </Link>
+                    </Button>
+                </div>
+            </div>
             <div className="max-w-4xl mx-auto">
                 <Card>
                     <CardHeader>
@@ -133,8 +129,7 @@ export default function Import({ auth, bank_account }: BankReconciliationImportP
                                     <Label htmlFor="statement_type">Tipo de Extrato</Label>
                                     <Select
                                         value={data.statement_type}
-                                        onValueChange={(value: 'csv' | 'ofx' | 'pdf' | 'manual') =>
-                                            setData('statement_type', value)
+                                        onValueChange={(value) => setData('statement_type', value as 'csv' | 'ofx' | 'pdf' | 'manual')
                                         }
                                     >
                                         <SelectTrigger>
@@ -226,8 +221,7 @@ export default function Import({ auth, bank_account }: BankReconciliationImportP
                                                     <Label htmlFor={`item-${index}-type`}>Tipo</Label>
                                                     <Select
                                                         value={item.type}
-                                                        onValueChange={(value: 'credit' | 'debit') =>
-                                                            updateItem(index, 'type', value)
+                                                        onValueChange={(value) => updateItem(index, 'type', value as 'credit' | 'debit')
                                                         }
                                                     >
                                                         <SelectTrigger>
@@ -293,7 +287,7 @@ export default function Import({ auth, bank_account }: BankReconciliationImportP
                                     asChild
                                     disabled={processing}
                                 >
-                                    <Link href={route('bank-reconciliation.show', bank_account.id)}>
+                                    <Link href={route('bank-reconciliation.show', { bank_account: bank_account.id })}>
                                         Cancelar
                                     </Link>
                                 </Button>

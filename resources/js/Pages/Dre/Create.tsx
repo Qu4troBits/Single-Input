@@ -12,7 +12,7 @@ import { ArrowLeft, Plus, AlertCircle } from 'lucide-react';
 interface Category {
   id: string;
   name: string;
-  code: string;
+  code: string; 
 }
 
 interface Props {

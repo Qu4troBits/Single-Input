@@ -9,6 +9,8 @@
         "@hookform/resolvers": "^5.4.0",
         "@inertiajs/core": "^2.0.0",
         "@inertiajs/react": "^2.0.0",
+        "@radix-ui/react-alert-dialog": "^1.1.19",
+        "@radix-ui/react-radio-group": "^1.4.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "lucide-react": "^1.21.0",

@@ -14,7 +14,7 @@ final class CategoryTest extends TestCase
 {
     public function test_it_creates_category_with_correct_properties(): void
     {
-        $id = CategoryId::generate();
+        $id = CategoryId::generate(); 
         $createdAt = new \DateTimeImmutable('2024-01-01 10:00:00');
         $updatedAt = new \DateTimeImmutable('2024-01-01 10:00:00');
 

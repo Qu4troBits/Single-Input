@@ -11,7 +11,7 @@ use App\Domain\BankAccounts\ValueObjects\BankAccountType;
 use App\Domain\Shared\Money;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
-
+ 
 final class CreateBankAccountHandlerTest extends TestCase
 {
     private BankAccountRepositoryInterface&MockObject $repository;
@@ -95,7 +95,6 @@ final class CreateBankAccountHandlerTest extends TestCase
             BankAccountType::CHECKING,
             BankAccountType::SAVINGS,
             BankAccountType::INVESTMENT,
-            BankAccountType::CREDIT_CARD,
             BankAccountType::WALLET,
             BankAccountType::OTHER,
         ];

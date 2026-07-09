@@ -113,26 +113,22 @@ export default function Index({ transactions, bankAccounts, categories }: Transa
 
   return (
     <AuthenticatedLayout
-      user={auth.user}
-      header={
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">Lançamentos</h2>
-            <p className="text-muted-foreground">
-              Gerencie todas as transações financeiras da sua empresa
-            </p>
-          </div>
-          <Link href={route('transactions.create')}>
-            <Button>
-              <ArrowUpRight className="mr-2 h-4 w-4" />
-              Novo Lançamento
-            </Button>
-          </Link>
-        </div>
-      }
     >
       <Head title="Lançamentos" />
-
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Lançamentos</h2>
+          <p className="text-muted-foreground">
+            Gerencie todas as transações financeiras da sua empresa
+          </p>
+        </div>
+        <Link href={route('transactions.create')}>
+          <Button>
+            <ArrowUpRight className="mr-2 h-4 w-4" />
+            Novo Lançamento
+          </Button>
+        </Link>
+      </div>
       <div className="space-y-6">
         {/* Cards de resumo */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -263,14 +259,14 @@ export default function Index({ transactions, bankAccounts, categories }: Transa
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Link href={route('transactions.edit', transaction.id)}>
+                          <Link href={route('transactions.edit', { id: transaction.id })}>
                             <Button variant="outline" size="sm">
                               Editar
                             </Button>
                           </Link>
                           {transaction.status === 'pending' && (
                             <Link
-                              href={route('transactions.markAsPaid', transaction.id)}
+                              href={route('transactions.markAsPaid', { id: transaction.id })}
                               method="post"
                               as="button"
                             >
@@ -281,7 +277,7 @@ export default function Index({ transactions, bankAccounts, categories }: Transa
                           )}
                           {transaction.status === 'pending' && (
                             <Link
-                              href={route('transactions.markAsCancelled', transaction.id)}
+                              href={route('transactions.markAsCancelled', { id: transaction.id })}
                               method="post"
                               as="button"
                             >

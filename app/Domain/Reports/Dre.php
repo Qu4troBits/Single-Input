@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\Reports;
 
+use App\Domain\Reports\DreLineType as ReportsDreLineType;
 use App\Domain\Shared\Money;
 use App\Domain\Reports\ValueObjects\DreLine;
-use App\Domain\Reports\ValueObjects\DreLineType;
+use App\Domain\Reports\DreLineType;
 use App\Domain\Reports\ValueObjects\DrePeriod;
 use DateTimeImmutable;
 

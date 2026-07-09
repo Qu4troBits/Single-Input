@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Badge } from '@/Components/ui/badge';
 import { Separator } from '@/Components/ui/separator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/Components/ui/alert-dialog';
-import { formatDate } from '@/Utils/date';
+import { formatDate } from '@/Utils/formatDate';
 import { getCategoryTypeLabel, getCategoryStatusLabel, getCategoryStatusColor } from '@/Utils/category';
 
 interface Category {
@@ -30,17 +30,19 @@ interface Category {
 
 interface Props {
     category: Category;
+    status: string;
+    type: string;
 }
 
-export default function CategoryShow({ category }: Props) {
+export default function CategoryShow({ category }: Props) {   
     const [isDeleting, setIsDeleting] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     const handleDelete = async () => {
         setIsDeleting(true);
-        
+
         try {
-            await router.delete(route('categories.destroy', category.id));
+            await router.delete(route('categories.destroy', { id: category.id }));
         } catch (error) {
             setIsDeleting(false);
             setShowDeleteConfirm(false);
@@ -49,15 +51,22 @@ export default function CategoryShow({ category }: Props) {
 
     const handleArchive = async () => {
         try {
-            await router.post(route('categories.archive', category.id));
+            await router.post(route('categories.archive', { id: category.id }));
         } catch (error) {
             console.error('Erro ao arquivar categoria:', error);
         }
     };
 
+    const getCategoryStatus = (category: Category): string => {
+        if (category.status === 'archived') return 'archived';
+        return category.status === 'active' ? 'active' : 'inactive';
+    };
+
+    const status = getCategoryStatus(category);
+
     const handleRestore = async () => {
         try {
-            await router.post(route('categories.restore', category.id));
+            await router.post(route('categories.restore', { id: category.id }));
         } catch (error) {
             console.error('Erro ao restaurar categoria:', error);
         }
@@ -82,7 +91,7 @@ export default function CategoryShow({ category }: Props) {
                             </Link>
                         </Button>
                         <Button variant="outline" asChild>
-                            <Link href={route('categories.edit', category.id)}>
+                            <Link href={route('categories.edit', { category: category.id })}>
                                 Editar
                             </Link>
                         </Button>
@@ -148,8 +157,8 @@ export default function CategoryShow({ category }: Props) {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-muted-foreground">Status</p>
-                                        <Badge className={`mt-1 ${getCategoryStatusColor(category.status)}`}>
-                                            {getCategoryStatusLabel(category.status)}
+                                        <Badge className={`mt-1 ${getCategoryStatusColor(status)}`}>
+                                            {getCategoryStatusLabel(status)}
                                         </Badge>
                                     </div>
                                 </div>
@@ -176,7 +185,7 @@ export default function CategoryShow({ category }: Props) {
                                         <p className="text-sm font-medium text-muted-foreground">Cor</p>
                                         <div className="flex items-center gap-2 mt-1">
                                             {category.color && (
-                                                <div 
+                                                <div
                                                     className="w-6 h-6 rounded-full border"
                                                     style={{ backgroundColor: category.color }}
                                                 />
@@ -251,7 +260,7 @@ export default function CategoryShow({ category }: Props) {
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">ID</p>
-                                    <p className="text-sm font-mono text-xs">{category.id}</p>
+                                    <p className="text-sm font-mono">{category.id}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -273,7 +282,7 @@ export default function CategoryShow({ category }: Props) {
                                 </Button>
                                 {category.parentId && (
                                     <Button variant="outline" className="w-full justify-start" asChild>
-                                        <Link href={route('categories.show', category.parentId)}>
+                                        <Link href={route('categories.show', { id: category.parentId })}>
                                             Ver categoria pai
                                         </Link>
                                     </Button>

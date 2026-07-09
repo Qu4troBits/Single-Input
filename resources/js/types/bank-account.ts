@@ -4,7 +4,6 @@ export interface BankAccount {
     bank_name: string;
     agency: string;
     account_number: string;
-    type: 'checking' | 'savings';
     initial_balance: string;
     current_balance: string;
     active: boolean;
@@ -12,3 +11,6 @@ export interface BankAccount {
     created_at: string;
     updated_at: string;
 }
+export type BankAccountType = 'checking' | 'savings' | 'investment' | 'other' | 'wallet';
+
+export type BankAccountStatus = 'active' | 'closed' | 'inactive' | 'blocked';

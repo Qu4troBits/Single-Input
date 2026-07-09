@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Com
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/Components/ui/table';
+import { Select } from '@/Components/ui/select';
 import { Link } from '@inertiajs/react';
 import { formatBRL } from '@/Utils/formatCurrency';
 import { BankAccount, ReconciliationSummary } from '@/types';
@@ -33,27 +34,23 @@ export default function Index({ auth, bank_accounts, reconciliation_summaries }:
 
     return (
         <AuthenticatedLayout
-            user={auth.user}
-            header={
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-3xl font-bold tracking-tight">Conciliação Bancária</h2>
-                        <p className="text-muted-foreground">
-                            Acompanhe e concilie suas transações bancárias
-                        </p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button asChild>
-                            <Link href={route('bank-accounts.create')}>
-                                Nova Conta Bancária
-                            </Link>
-                        </Button>
-                    </div>
-                </div>
-            }
         >
             <Head title="Conciliação Bancária" />
-
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight">Conciliação Bancária</h2>
+                    <p className="text-muted-foreground">
+                        Acompanhe e concilie suas transações bancárias
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button asChild>
+                        <Link href={route('bank-accounts.create')}>
+                            Nova Conta Bancária
+                        </Link>
+                    </Button>
+                </div>
+            </div>
             <div className="space-y-6">
                 <Card>
                     <CardHeader>
@@ -101,12 +98,12 @@ export default function Index({ auth, bank_accounts, reconciliation_summaries }:
                                         <TableCell>
                                             <div className="flex gap-2">
                                                 <Button size="sm" variant="outline" asChild>
-                                                    <Link href={route('bank-reconciliation.show', item.bank_account_id)}>
+                                                    <Link href={route('bank-reconciliation.show', { bank_account: item.bank_account_id })}>
                                                         Detalhes
                                                     </Link>
                                                 </Button>
                                                 <Button size="sm" asChild>
-                                                    <Link href={route('bank-reconciliation.import.form', item.bank_account_id)}>
+                                                    <Link href={route('bank-reconciliation.import.form', { bank_account: item.bank_account_id })}>
                                                         Importar Extrato
                                                     </Link>
                                                 </Button>

@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 final class GenerateProjectionHandlerTest extends TestCase
 {
-    private FinancialProjectionGenerator $projectionGenerator;
+    private FinancialProjectionGenerator $projectionGenerator; 
     private GenerateProjectionHandler $handler;
 
     protected function setUp(): void
