@@ -1,66 +1,218 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Singleimput
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+SaaS de gestão financeira para pequenos e-commerces brasileiros. Baseado em modelo de planilha DRE + Fluxo de Caixa, traduzido para uma aplicação web multi-tenant com arquitetura limpa.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**Backend**
+- PHP 8.3 + Laravel 11
+- PostgreSQL 16 (NUMERIC para valores monetários — nunca float)
+- Redis 7 + Laravel Horizon (filas e cache)
+- Laravel Sanctum + 2FA TOTP
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+**Frontend**
+- React 18 + TypeScript
+- Inertia.js v2
+- Vite
+- shadcn/ui + Tailwind CSS
 
-## Learning Laravel
+**Infraestrutura**
+- Multi-tenancy schema-per-tenant no PostgreSQL
+- Deploy em VPS (~3 instâncias, ~R$600–900/mês)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Arquitetura
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+O projeto segue Clean Architecture com separação estrita de responsabilidades. Cada camada tem um papel específico e não invade a vizinha.
 
-## Laravel Sponsors
+```
+app/
+├── Domain/                        # Regras de negócio puras (sem Laravel)
+│   ├── BankAccounts/
+│   │   ├── Entities/
+│   │   ├── ValueObjects/
+│   │   └── Repositories/          # Interfaces (contratos)
+│   ├── Categories/
+│   │   ├── Entities/
+│   │   ├── ValueObjects/
+│   │   └── Repositories/
+│   ├── Transactions/
+│   ├── FinancialProjections/
+│   ├── BankReconciliation/
+│   ├── Reports/
+│   ├── Plans/
+│   ├── Tenancy/
+│   └── Shared/
+│       └── Money.php              # Value Object monetário (bcmath)
+│
+├── Application/                   # Casos de uso
+│   ├── BankAccounts/
+│   │   ├── DTOs/
+│   │   └── Handlers/
+│   ├── Categories/
+│   ├── Transactions/
+│   ├── FinancialProjections/
+│   ├── BankReconciliation/
+│   ├── Reports/
+│   ├── Auth/
+│   │   └── TwoFactor/
+│   └── Tenancy/
+│
+├── Infrastructure/                # Implementações concretas
+│   ├── Persistence/
+│   │   └── Eloquent/              # Repositories Eloquent + Models
+│   ├── Tenancy/
+│   │   ├── TenantContext.php
+│   │   ├── TenantSchemaManager.php
+│   │   └── InitialTenantAdminCreator.php
+│   └── Jobs/
+│
+└── Http/                          # Camada HTTP (Controllers finos)
+    ├── Controllers/
+    │   └── Auth/
+    ├── Middleware/
+    │   ├── TenantMiddleware.php
+    │   ├── SecurityHeadersMiddleware.php
+    │   └── AuditLogMiddleware.php
+    └── Requests/
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+resources/js/
+├── Pages/
+│   ├── Auth/
+│   ├── BankAccounts/
+│   ├── Categories/
+│   ├── Transactions/
+│   ├── FinancialProjections/
+│   ├── BankReconciliation/
+│   └── Reports/
+├── Components/
+│   └── ui/                        # shadcn/ui components
+├── Layouts/
+│   └── AuthenticatedLayout.tsx
+├── types/
+└── Utils/
+    ├── formatCurrency.ts
+    └── formatDate.ts
+```
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## Fluxo de uma requisição
 
-## Contributing
+```
+HTTP Request
+    ↓
+FormRequest         (valida formato dos dados)
+    ↓
+Controller          (fino: converte Request → DTO, chama Handler)
+    ↓
+Handler             (caso de uso: orquestra Domain + Repositories)
+    ↓
+Domain Entity       (aplica regras de negócio)
+    ↓
+Repository Interface → Eloquent (persiste no banco)
+    ↓
+HTTP Response (via Inertia)
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Módulos
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Módulo | Status |
+|---|---|
+| BankAccounts (Contas Bancárias) | ✅ |
+| Categories (Categorias) | ✅ |
+| Transactions (Transações) | ✅ |
+| FinancialProjections (Projeções) | ✅ |
+| BankReconciliation (Conciliação) | ✅ |
+| Reports / DRE | ✅ |
+| Autenticação + 2FA TOTP | ✅ |
+| Multi-tenancy (schema-per-tenant) | ✅ |
+| Plans / Subscriptions | ✅ |
+| Audit Log | ✅ |
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Regras absolutas
 
-## License
+- **Nunca usar float para dinheiro.** Todo valor monetário passa pelo `App\Domain\Shared\Money` que usa `bcmath`.
+- **Controllers sem lógica de negócio.** Controllers apenas recebem, delegam ao Handler e devolvem resposta.
+- **Interfaces no Domain, implementações na Infrastructure.** O Domain não conhece Eloquent.
+- **DTOs em `/DTOs/`, nunca em `/Data/`.** Convenção de namespace consistente em todos os módulos.
+- **`declare(strict_types=1)` em todos os arquivos PHP.**
+- **Controllers no plural** — `BankAccountsController`, `CategoriesController`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Instalação
+
+```bash
+# Clonar e instalar dependências
+git clone <repo>
+cd singleimput
+composer install
+npm install
+
+# Configurar ambiente
+cp .env.example .env
+php artisan key:generate
+
+# Configurar banco (PostgreSQL)
+# Editar .env: DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD
+
+# Migrations
+php artisan migrate
+
+# Frontend
+npm run build
+
+# Horizon (filas)
+php artisan horizon
+```
+
+---
+
+## Testes
+
+```bash
+# Todos os testes
+php artisan test
+
+# Apenas unit tests
+php artisan test --testsuite=Unit
+
+# Apenas feature tests
+php artisan test --testsuite=Feature
+```
+
+Os testes de unidade usam `InMemoryRepository` para rodar sem banco de dados. Os testes de feature usam `RefreshDatabase` com SQLite `:memory:`.
+
+---
+
+## Multi-tenancy
+
+Cada tenant (empresa cliente) possui um schema próprio no PostgreSQL. O `TenantMiddleware` identifica o tenant pela requisição e injeta o schema correto. Todos os models de tenant aplicam `TenantDataScope` automaticamente via GlobalScope.
+
+Para criar um novo tenant:
+
+```bash
+php artisan tenant:create --name="Empresa X" --email="admin@empresa.com"
+```
+
+---
+
+## Origem do modelo financeiro
+
+O sistema é baseado em uma planilha de modelagem financeira (DRE + Fluxo de Caixa) com as seguintes fórmulas centrais:
+
+- **Receita Bruta** = Investimento em tráfego pago × ROAS
+- **Custo de Produção** = 33% da Receita Bruta
+- **Intermediadores de Pagamento** = 4,5% da Receita Bruta
+- **Frete** = 8% da Receita Bruta
+- **Tributos** = 4,5% a 5,5% (progressivo por faixa de faturamento)
+- **EBITDA** = Receita Líquida − Custo Operacional − Despesa Operacional
+- **Saldo diário** = calculado por SUMIF de data e banco na base de dados diária

@@ -1,0 +1,16 @@
+export interface BankAccount {
+    id: string;
+    name: string;
+    bank_name: string;
+    agency: string;
+    account_number: string;
+    initial_balance: string;
+    current_balance: string;
+    active: boolean;
+    notes?: string;
+    created_at: string;
+    updated_at: string;
+}
+export type BankAccountType = 'checking' | 'savings' | 'investment' | 'other' | 'wallet';
+
+export type BankAccountStatus = 'active' | 'closed' | 'inactive' | 'blocked';

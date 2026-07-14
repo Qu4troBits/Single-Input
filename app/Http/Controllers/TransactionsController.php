@@ -4,61 +4,189 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Application\Banking\ListBankAccounts\ListBankAccountsHandler;
-use App\Application\Categories\ListCategories\ListCategoriesHandler;
-use App\Application\Transactions\CreateTransaction\CreateTransactionData;
-use App\Application\Transactions\CreateTransaction\CreateTransactionHandler;
-use App\Application\Transactions\ListTransactions\ListTransactionsHandler;
-use App\Http\Requests\Transactions\CreateTransactionRequest;
+use App\Application\Transactions\DTOs\CreateTransactionData;
+use App\Application\Transactions\DTOs\UpdateTransactionData;
+use App\Application\Transactions\Handlers\CreateTransactionHandler;
+use App\Application\Transactions\Handlers\DeleteTransactionHandler;
+use App\Application\Transactions\Handlers\MarkTransactionAsCancelledHandler;
+use App\Application\Transactions\Handlers\MarkTransactionAsPaidHandler;
+use App\Application\Transactions\Handlers\UpdateTransactionHandler;
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
+use App\Domain\BankAccounts\Repositories\BankAccountRepositoryInterface;
+use App\Domain\Categories\ValueObjects\CategoryId;
+use App\Domain\Categories\Repositories\CategoryRepositoryInterface;
+use App\Domain\Shared\Money;
+use App\Domain\Transactions\TransactionDirection;
+use App\Domain\Transactions\TransactionId;
+use App\Domain\Transactions\TransactionRepositoryInterface;
+use App\Domain\Transactions\TransactionStatus;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 final class TransactionsController extends Controller
 {
-    public function index(ListTransactionsHandler $handler): Response
+    public function index(TransactionRepositoryInterface $repository): Response
     {
-        $transactions = $handler->handle();
+        $transactions = $repository->findAll();
 
         return Inertia::render('Transactions/Index', [
-            'transactions' => array_map(static function ($t): array {
-                return [
-                    'id' => $t->id,
-                    'description' => $t->description,
-                    'amount' => $t->amount->toString(),
-                    'direction' => $t->direction->value,
-                    'status' => $t->status->value,
-                    'competence_month' => $t->competenceMonth,
-                    'payment_date' => $t->paymentDate,
-                ];
-            }, $transactions),
+            'transactions' => array_map(fn ($transaction) => [
+                'id' => $transaction->getId()->toString(),
+                'bank_account_id' => $transaction->getBankAccountId()->toString(),
+                'category_id' => $transaction->getCategoryId()->toString(),
+                'description' => $transaction->getDescription(),
+                'amount' => $transaction->getAmount()->toNumeric(),
+                'direction' => $transaction->getDirection()->value,
+                'status' => $transaction->getStatus()->value,
+                'competence_month' => $transaction->getCompetenceMonth(),
+                'payment_date' => $transaction->getPaymentDate()?->format('Y-m-d'),
+                'created_at' => $transaction->getCreatedAt()->format('Y-m-d H:i:s'),
+                'updated_at' => $transaction->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ], $transactions),
         ]);
     }
 
-    public function create(ListBankAccountsHandler $bankAccounts, ListCategoriesHandler $categories): Response
-    {
-        $accounts = $bankAccounts->handle();
-        $cats = $categories->handle();
+    public function create(
+        BankAccountRepositoryInterface $bankAccountRepository,
+        CategoryRepositoryInterface $categoryRepository
+    ): Response {
+        $bankAccounts = $bankAccountRepository->findAll();
+        $categories = $categoryRepository->findAll();
 
         return Inertia::render('Transactions/Create', [
-            'bankAccounts' => array_map(static fn ($a): array => ['id' => $a->id, 'name' => $a->name], $accounts),
-            'categories' => array_map(static fn ($c): array => ['id' => $c->id, 'name' => $c->name], $cats),
+            'bankAccounts' => array_map(fn ($account) => [
+                'id' => $account->getId()->toString(),
+                'name' => $account->getName(),
+            ], $bankAccounts),
+            'categories' => array_map(fn ($category) => [
+                'id' => $category->getId()->toString(),
+                'name' => $category->getName(),
+                'type' => $category->getType()->value,
+            ], $categories),
+            'directions' => array_map(fn ($direction) => $direction->value, TransactionDirection::cases()),
         ]);
     }
 
-    public function store(CreateTransactionRequest $request, CreateTransactionHandler $handler): RedirectResponse
+    public function store(Request $request, CreateTransactionHandler $handler): RedirectResponse
     {
-        $handler->handle(new CreateTransactionData(
-            bankAccountId: (int) $request->integer('bank_account_id'),
-            categoryId: (int) $request->integer('category_id'),
-            description: (string) $request->string('description'),
-            amount: (string) $request->string('amount'),
-            direction: (string) $request->string('direction'),
-            status: (string) $request->string('status'),
-            competenceMonth: (string) $request->string('competence_month'),
-            paymentDate: $request->filled('payment_date') ? (string) $request->string('payment_date') : null,
+        $validated = $request->validate([
+            'bank_account_id' => 'required|uuid',
+            'category_id' => 'required|uuid',
+            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'direction' => 'required|in:' . implode(',', array_map(fn ($direction) => $direction->value, TransactionDirection::cases())),
+            'competence_month' => 'required|date_format:Y-m',
+            'payment_date' => 'nullable|date',
+        ]);
+
+        $transactionId = $handler->handle(new CreateTransactionData(
+            bankAccountId: BankAccountId::fromString($validated['bank_account_id']),
+            categoryId: CategoryId::fromString($validated['category_id']),
+            description: $validated['description'],
+            amount: Money::of($validated['amount']),
+            direction: TransactionDirection::from($validated['direction']),
+            competenceMonth: $validated['competence_month'],
+            paymentDate: isset($validated['payment_date']) ? new \DateTimeImmutable($validated['payment_date']) : null,
         ));
 
-        return redirect()->route('transactions.index');
+        return redirect()->route('transactions.index')
+            ->with('success', 'Lançamento criado com sucesso.');
+    }
+
+    public function edit(
+        string $id,
+        TransactionRepositoryInterface $transactionRepository,
+        BankAccountRepositoryInterface $bankAccountRepository,
+        CategoryRepositoryInterface $categoryRepository
+    ): Response {
+        $transaction = $transactionRepository->findById(TransactionId::fromString($id));
+
+        if ($transaction === null) {
+            abort(404);
+        }
+
+        $bankAccounts = $bankAccountRepository->findAll();
+        $categories = $categoryRepository->findAll();
+
+        return Inertia::render('Transactions/Edit', [
+            'transaction' => [
+                'id' => $transaction->getId()->toString(),
+                'bank_account_id' => $transaction->getBankAccountId()->toString(),
+                'category_id' => $transaction->getCategoryId()->toString(),
+                'description' => $transaction->getDescription(),
+                'amount' => $transaction->getAmount()->toNumeric(),
+                'direction' => $transaction->getDirection()->value,
+                'status' => $transaction->getStatus()->value,
+                'competence_month' => $transaction->getCompetenceMonth(),
+                'payment_date' => $transaction->getPaymentDate()?->format('Y-m-d'),
+            ],
+            'bankAccounts' => array_map(fn ($account) => [
+                'id' => $account->getId()->toString(),
+                'name' => $account->getName(),
+            ], $bankAccounts),
+            'categories' => array_map(fn ($category) => [
+                'id' => $category->getId()->toString(),
+                'name' => $category->getName(),
+                'type' => $category->getType()->value,
+            ], $categories),
+            'directions' => array_map(fn ($direction) => $direction->value, TransactionDirection::cases()),
+            'statuses' => array_map(fn ($status) => $status->value, TransactionStatus::cases()),
+        ]);
+    }
+
+    public function update(Request $request, string $id, UpdateTransactionHandler $handler): RedirectResponse
+    {
+        $validated = $request->validate([
+            'bank_account_id' => 'required|uuid',
+            'category_id' => 'required|uuid',
+            'description' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'direction' => 'required|in:' . implode(',', array_map(fn ($direction) => $direction->value, TransactionDirection::cases())),
+            'competence_month' => 'required|date_format:Y-m',
+        ]);
+
+        $handler->handle(
+            TransactionId::fromString($id),
+            new UpdateTransactionData(
+                bankAccountId: BankAccountId::fromString($validated['bank_account_id']),
+                categoryId: CategoryId::fromString($validated['category_id']),
+                description: $validated['description'],
+                amount: Money::of($validated['amount']),
+                direction: TransactionDirection::from($validated['direction']),
+                competenceMonth: $validated['competence_month'],
+            )
+        );
+
+        return redirect()->route('transactions.index')
+            ->with('success', 'Lançamento atualizado com sucesso.');
+    }
+
+    public function destroy(string $id, DeleteTransactionHandler $handler): RedirectResponse
+    {
+        $handler->handle(TransactionId::fromString($id));
+
+        return redirect()->route('transactions.index')
+            ->with('success', 'Lançamento excluído com sucesso.');
+    }
+
+    public function markAsPaid(string $id, MarkTransactionAsPaidHandler $handler): RedirectResponse
+    {
+        $handler->handle(
+            TransactionId::fromString($id),
+            new \DateTimeImmutable()
+        );
+
+        return redirect()->route('transactions.index')
+            ->with('success', 'Lançamento marcado como pago.');
+    }
+
+    public function markAsCancelled(string $id, MarkTransactionAsCancelledHandler $handler): RedirectResponse
+    {
+        $handler->handle(TransactionId::fromString($id));
+
+        return redirect()->route('transactions.index')
+            ->with('success', 'Lançamento cancelado.');
     }
 }

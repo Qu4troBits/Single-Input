@@ -1,0 +1,22 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Application\Transactions\DTOs;
+
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
+use App\Domain\Categories\ValueObjects\CategoryId;
+use App\Domain\Shared\Money;
+use App\Domain\Transactions\TransactionDirection;
+
+final readonly class UpdateTransactionData
+{
+    public function __construct(
+        public BankAccountId $bankAccountId,
+        public CategoryId $categoryId,
+        public string $description,
+        public Money $amount,
+        public TransactionDirection $direction,
+        public string $competenceMonth, // Formato: YYYY-MM
+    ) {}
+}

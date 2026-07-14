@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Categories\ListCategories;
 
-use App\Domain\Categories\CategoryRepositoryInterface;
+use App\Domain\Categories\Repositories\CategoryRepositoryInterface;
 
 final readonly class ListCategoriesHandler
 {
@@ -14,6 +14,6 @@ final readonly class ListCategoriesHandler
 
     public function handle(): array
     {
-        return $this->categories->listAll();
+        return $this->categories->findAll();
     }
 }
