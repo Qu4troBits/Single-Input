@@ -13,11 +13,13 @@ use App\Domain\BankAccounts\ValueObjects\BankAccountStatus;
 use App\Domain\BankAccounts\ValueObjects\BankAccountType;
 use App\Domain\Shared\Money;
 use DateTimeImmutable;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase; 
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class UpdateBankAccountHandlerTest extends TestCase
 {
-    private BankAccountRepositoryInterface $bankAccountRepository;
+    /** @var BankAccountRepositoryInterface&MockObject */
+    private BankAccountRepositoryInterface&MockObject $bankAccountRepository;
     private UpdateBankAccountHandler $handler;
 
     protected function setUp(): void
@@ -31,7 +33,7 @@ final class UpdateBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_updates_bank_account_successfully(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $existingBankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Antiga',
@@ -85,12 +87,8 @@ final class UpdateBankAccountHandlerTest extends TestCase
             ->willReturn(null);
 
         $this->bankAccountRepository
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('findAll')
-            ->with(
-                isDefault: true,
-                status: BankAccountStatus::ACTIVE
-            )
             ->willReturn(['data' => []]);
 
         $this->bankAccountRepository
@@ -125,7 +123,7 @@ final class UpdateBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_bank_account_not_found(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $updateData = new UpdateBankAccountData(
             id: $bankAccountId,
             name: 'Conta Nova',
@@ -153,8 +151,8 @@ final class UpdateBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_account_number_already_exists(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
-        $otherBankAccountId = BankAccountId::fromString('bank_87654321-4321-4321-4321-210987654321');
+        $bankAccountId = BankAccountId::generate();
+        $otherBankAccountId = BankAccountId::generate();
         
         $existingBankAccount = new BankAccount(
             id: $bankAccountId,
@@ -233,8 +231,8 @@ final class UpdateBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_unsets_other_default_accounts_when_marking_as_default(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
-        $otherBankAccountId = BankAccountId::fromString('bank_87654321-4321-4321-4321-210987654321');
+        $bankAccountId = BankAccountId::generate();
+        $otherBankAccountId = BankAccountId::generate();
         
         $existingBankAccount = new BankAccount(
             id: $bankAccountId,
@@ -306,12 +304,8 @@ final class UpdateBankAccountHandlerTest extends TestCase
             ->willReturn(null);
 
         $this->bankAccountRepository
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('findAll')
-            ->with(
-                isDefault: true,
-                status: BankAccountStatus::ACTIVE
-            )
             ->willReturn(['data' => [$otherBankAccount]]);
 
         // Expect two saves: one for unsetting the other default account, one for updating the current account

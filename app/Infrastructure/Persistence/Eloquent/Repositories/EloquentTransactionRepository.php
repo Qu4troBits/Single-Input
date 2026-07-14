@@ -13,7 +13,6 @@ use App\Domain\Transactions\TransactionRepositoryInterface;
 use App\Domain\Transactions\TransactionStatus;
 use App\Infrastructure\Persistence\Eloquent\Models\TransactionModel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use RuntimeException;
 
 final class EloquentTransactionRepository implements TransactionRepositoryInterface
 {

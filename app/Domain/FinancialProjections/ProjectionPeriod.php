@@ -78,4 +78,20 @@ final readonly class ProjectionPeriod
             throw new \InvalidArgumentException('Start date must be before end date.');
         }
     }
+
+    public function getDurationInDays(): int
+    {
+        $interval = $this->startDate->diff($this->endDate);
+        return (int) $interval->days + 1;
+    }
+
+    public function contains(\DateTimeImmutable $date): bool
+    {
+        return $date >= $this->startDate && $date <= $this->endDate;
+    }
+
+    public function overlaps(self $other): bool
+    {
+        return $this->startDate <= $other->endDate && $this->endDate >= $other->startDate;
+    }
 }

@@ -11,14 +11,15 @@ use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Categories\ValueObjects\CategoryType;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class DeleteCategoryHandlerTest extends TestCase
 {
-    private CategoryRepositoryInterface $categoryRepository;
+    private CategoryRepositoryInterface&MockObject $categoryRepository;
     private DeleteCategoryHandler $handler;
 
     protected function setUp(): void
-    {
+    { 
         parent::setUp();
 
         $this->categoryRepository = $this->createMock(CategoryRepositoryInterface::class);
@@ -28,7 +29,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_deletes_category_successfully(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -67,7 +68,7 @@ final class DeleteCategoryHandlerTest extends TestCase
         $this->categoryRepository
             ->expects($this->once())
             ->method('delete')
-            ->with($categoryId);
+            ->with($this->callback(fn($c) => $c instanceof \App\Domain\Categories\Entities\Category));
 
         $this->handler->handle($categoryId);
     }
@@ -75,7 +76,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_category_not_found(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
 
         $this->categoryRepository
             ->expects($this->once())
@@ -92,7 +93,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_category_has_children(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -131,7 +132,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_category_has_transactions(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -176,7 +177,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_category_is_default(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -221,7 +222,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_archives_category_successfully(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -244,12 +245,6 @@ final class DeleteCategoryHandlerTest extends TestCase
             ->method('findById')
             ->with($categoryId)
             ->willReturn($category);
-
-        // Mock para verificar se já está arquivada
-        $this->categoryRepository
-            ->expects($this->once())
-            ->method('findAll')
-            ->willReturn(['data' => []]);
 
         $this->categoryRepository
             ->expects($this->once())
@@ -264,7 +259,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_archiving_already_archived_category(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -282,14 +277,15 @@ final class DeleteCategoryHandlerTest extends TestCase
             updatedAt: new DateTimeImmutable('2024-01-01'),
         );
 
+        // Archive the category first!
+        $category->archive(new DateTimeImmutable());
+
         $this->categoryRepository
             ->expects($this->once())
             ->method('findById')
             ->with($categoryId)
             ->willReturn($category);
 
-        // Mock para simular que a categoria já está arquivada
-        // (precisaríamos de um método isArchived na entidade Category)
         $this->expectException(\DomainException::class);
         $this->expectExceptionMessage('A categoria já está arquivada.');
 
@@ -299,7 +295,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_archiving_default_category(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -332,7 +328,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_restores_category_successfully(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',
@@ -350,17 +346,14 @@ final class DeleteCategoryHandlerTest extends TestCase
             updatedAt: new DateTimeImmutable('2024-01-01'),
         );
 
+        // Archive the category first!
+        $category->archive(new DateTimeImmutable());
+
         $this->categoryRepository
             ->expects($this->once())
             ->method('findById')
             ->with($categoryId)
             ->willReturn($category);
-
-        // Mock para verificar se não está arquivada
-        $this->categoryRepository
-            ->expects($this->once())
-            ->method('findAll')
-            ->willReturn(['data' => []]);
 
         $this->categoryRepository
             ->expects($this->once())
@@ -375,7 +368,7 @@ final class DeleteCategoryHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_restoring_not_archived_category(): void
     {
-        $categoryId = CategoryId::fromString('cat_12345678-1234-1234-1234-123456789012');
+        $categoryId = CategoryId::generate();
         $category = new Category(
             id: $categoryId,
             name: 'Categoria Teste',

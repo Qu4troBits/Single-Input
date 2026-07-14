@@ -213,4 +213,14 @@ final class BankAccount
     {
         return $this->status->canReceiveTransactions();
     }
+
+    public function isChecking(): bool
+    {
+        return $this->type->isChecking();
+    }
+
+    public function isCreditCard(): bool
+    {
+        return $this->type->isCreditCard();
+    }
 }

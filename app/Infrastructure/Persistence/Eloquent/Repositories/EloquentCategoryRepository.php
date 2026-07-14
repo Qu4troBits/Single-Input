@@ -10,8 +10,6 @@ use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Categories\ValueObjects\CategoryType;
 use App\Infrastructure\Persistence\Eloquent\Models\CategoryModel;
 use DateTimeImmutable;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 final class EloquentCategoryRepository implements CategoryRepositoryInterface
 {

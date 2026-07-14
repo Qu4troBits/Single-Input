@@ -177,6 +177,11 @@ final class Category
         return $this->type->isExpense();
     }
 
+    public function isIncome(): bool
+    {
+        return $this->type->isIncome();
+    }
+
     public function isTransfer(): bool
     {
         return $this->type->isTransfer();
@@ -200,4 +205,11 @@ final class Category
         
         return CategoryStatus::ACTIVE;
     }
+
+    public function isActive(): bool
+    {
+        return $this->getStatus() === CategoryStatus::ACTIVE;
+    }
+
+    public const INCOME = 'income';
 }

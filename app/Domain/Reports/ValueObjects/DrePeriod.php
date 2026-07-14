@@ -162,4 +162,65 @@ final readonly class DrePeriod
     {
         return $this->toString();
     }
+
+    public function getFormattedPeriod(): string
+    {
+        return $this->getLabel();
+    }
+
+    public function getDaysInPeriod(): int
+    {
+        return $this->getDurationInDays();
+    }
+
+    public function isWithinPeriod(\DateTimeImmutable $date): bool
+    {
+        return $this->contains($date);
+    }
+
+    public function getPreviousPeriod(): self
+    {
+        $startDate = $this->startDate->modify('first day of previous month');
+        return new self($startDate, $startDate->modify('last day of this month'), $this->periodType);
+    }
+
+    public function getNextPeriod(): self
+    {
+        $startDate = $this->startDate->modify('first day of next month');
+        return new self($startDate, $startDate->modify('last day of this month'), $this->periodType);
+    }
+
+    public function getQuarterlyPeriod(): int
+    {
+        return $this->getQuarter($this->startDate);
+    }
+
+    public function getYearlyPeriod(): int
+    {
+        return (int) $this->startDate->format('Y');
+    }
+
+    public function getMonthName(): string
+    {
+        $months = [
+            1 => 'Janeiro',
+            2 => 'Fevereiro',
+            3 => 'Março',
+            4 => 'Abril',
+            5 => 'Maio',
+            6 => 'Junho',
+            7 => 'Julho',
+            8 => 'Agosto',
+            9 => 'Setembro',
+            10 => 'Outubro',
+            11 => 'Novembro',
+            12 => 'Dezembro',
+        ];
+        return $months[(int) $this->startDate->format('n')] ?? '';
+    }
+
+    public function getQuarterName(): string
+    {
+        return $this->getQuarter($this->startDate) . 'º Trimestre';
+    }
 }

@@ -17,7 +17,7 @@ final class ProjectionPeriodTest extends TestCase
         $endDate = new \DateTimeImmutable('2024-01-31');
         $periodType = PeriodType::MONTHLY;
 
-        $period = new ProjectionPeriod($startDate, $endDate, $periodType);
+        $period = new ProjectionPeriod($startDate, $endDate, $periodType); 
 
         $this->assertEquals($startDate, $period->getStartDate());
         $this->assertEquals($endDate, $period->getEndDate());
@@ -28,7 +28,6 @@ final class ProjectionPeriodTest extends TestCase
     public function it_throws_exception_when_end_date_is_before_start_date(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('End date must be after start date.');
 
         $startDate = new \DateTimeImmutable('2024-01-31');
         $endDate = new \DateTimeImmutable('2024-01-01');
@@ -51,7 +50,6 @@ final class ProjectionPeriodTest extends TestCase
     public function it_throws_exception_for_invalid_year_month_format(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Invalid year-month format. Use YYYY-MM.');
 
         ProjectionPeriod::createMonthly('2024/01');
     }
@@ -60,7 +58,7 @@ final class ProjectionPeriodTest extends TestCase
     public function it_returns_correct_label_for_monthly_period(): void
     {
         $period = ProjectionPeriod::createMonthly('2024-01');
-        $this->assertEquals('Janeiro de 2024', $period->getLabel());
+        $this->assertEquals('January 2024', $period->getLabel());
     }
 
     /** @test */
@@ -70,7 +68,7 @@ final class ProjectionPeriodTest extends TestCase
         $endDate = new \DateTimeImmutable('2024-03-31');
         $period = new ProjectionPeriod($startDate, $endDate, PeriodType::QUARTERLY);
 
-        $this->assertEquals('1º Trimestre de 2024', $period->getLabel());
+        $this->assertEquals('Q1 2024', $period->getLabel());
     }
 
     /** @test */
@@ -80,7 +78,7 @@ final class ProjectionPeriodTest extends TestCase
         $endDate = new \DateTimeImmutable('2024-12-31');
         $period = new ProjectionPeriod($startDate, $endDate, PeriodType::YEARLY);
 
-        $this->assertEquals('Ano 2024', $period->getLabel());
+        $this->assertEquals('2024', $period->getLabel());
     }
 
     /** @test */

@@ -7,16 +7,21 @@ namespace Tests\Unit\Application\BankAccounts;
 use App\Application\BankAccounts\Handlers\DeleteBankAccountHandler;
 use App\Domain\BankAccounts\Entities\BankAccount;
 use App\Domain\BankAccounts\Repositories\BankAccountRepositoryInterface;
+use App\Domain\Transactions\TransactionRepositoryInterface;
 use App\Domain\BankAccounts\ValueObjects\BankAccountId;
 use App\Domain\BankAccounts\ValueObjects\BankAccountStatus;
 use App\Domain\BankAccounts\ValueObjects\BankAccountType;
 use App\Domain\Shared\Money;
 use DateTimeImmutable;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\TestCase; 
+use PHPUnit\Framework\MockObject\MockObject;
 
 final class DeleteBankAccountHandlerTest extends TestCase
 {
-    private BankAccountRepositoryInterface $bankAccountRepository;
+    /** @var BankAccountRepositoryInterface&MockObject */
+    private BankAccountRepositoryInterface&MockObject $bankAccountRepository;
+    /** @var TransactionRepositoryInterface&MockObject */
+    private TransactionRepositoryInterface&MockObject $transactionRepository;
     private DeleteBankAccountHandler $handler;
 
     protected function setUp(): void
@@ -24,13 +29,14 @@ final class DeleteBankAccountHandlerTest extends TestCase
         parent::setUp();
 
         $this->bankAccountRepository = $this->createMock(BankAccountRepositoryInterface::class);
-        $this->handler = new DeleteBankAccountHandler($this->bankAccountRepository);
+        $this->transactionRepository = $this->createMock(TransactionRepositoryInterface::class);
+        $this->handler = new DeleteBankAccountHandler($this->bankAccountRepository, $this->transactionRepository);
     }
 
     /** @test */
     public function it_deletes_bank_account_successfully(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -59,16 +65,16 @@ final class DeleteBankAccountHandlerTest extends TestCase
             ->with($bankAccountId)
             ->willReturn($bankAccount);
 
-        $this->bankAccountRepository
+        $this->transactionRepository
             ->expects($this->once())
-            ->method('hasTransactions')
+            ->method('findByBankAccountId')
             ->with($bankAccountId)
-            ->willReturn(false);
+            ->willReturn([]);
 
         $this->bankAccountRepository
             ->expects($this->once())
             ->method('delete')
-            ->with($bankAccountId);
+            ->with($this->callback(fn($account) => $account instanceof BankAccount && $account->getId()->equals($bankAccountId)));
 
         $this->handler->handle($bankAccountId);
     }
@@ -76,7 +82,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_bank_account_not_found(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
 
         $this->bankAccountRepository
             ->expects($this->once())
@@ -93,7 +99,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_bank_account_is_active(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -131,7 +137,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_bank_account_has_transactions(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -160,11 +166,11 @@ final class DeleteBankAccountHandlerTest extends TestCase
             ->with($bankAccountId)
             ->willReturn($bankAccount);
 
-        $this->bankAccountRepository
+        $this->transactionRepository
             ->expects($this->once())
-            ->method('hasTransactions')
+            ->method('findByBankAccountId')
             ->with($bankAccountId)
-            ->willReturn(true);
+            ->willReturn(['transaction1', 'transaction2']); // Simula que há transações
 
         $this->expectException(\DomainException::class);
         $this->expectExceptionMessage('Não é possível excluir uma conta bancária com transações associadas.');
@@ -175,7 +181,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_bank_account_is_default(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -204,11 +210,11 @@ final class DeleteBankAccountHandlerTest extends TestCase
             ->with($bankAccountId)
             ->willReturn($bankAccount);
 
-        $this->bankAccountRepository
+        $this->transactionRepository
             ->expects($this->once())
-            ->method('hasTransactions')
+            ->method('findByBankAccountId')
             ->with($bankAccountId)
-            ->willReturn(false);
+            ->willReturn([]);
 
         $this->expectException(\DomainException::class);
         $this->expectExceptionMessage('Não é possível excluir a conta bancária padrão.');
@@ -219,7 +225,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_deactivates_bank_account_successfully(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -262,7 +268,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_deactivating_already_inactive_account(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -300,7 +306,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_deactivating_default_account(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -338,7 +344,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_activates_bank_account_successfully(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',
@@ -381,7 +387,7 @@ final class DeleteBankAccountHandlerTest extends TestCase
     /** @test */
     public function it_throws_exception_when_activating_already_active_account(): void
     {
-        $bankAccountId = BankAccountId::fromString('bank_12345678-1234-1234-1234-123456789012');
+        $bankAccountId = BankAccountId::generate();
         $bankAccount = new BankAccount(
             id: $bankAccountId,
             name: 'Conta Teste',

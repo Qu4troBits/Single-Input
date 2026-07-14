@@ -15,7 +15,7 @@ final class ProjectionItemTest extends TestCase
     public function it_can_be_created_with_valid_data(): void
     {
         $id = 'item-123';
-        $date = new \DateTimeImmutable('2024-01-15');
+        $date = new \DateTimeImmutable('2024-01-15'); 
         $description = 'Venda de produto X';
         $amount = Money::of('1000.50');
         $type = ProjectionType::REVENUE;

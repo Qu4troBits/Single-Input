@@ -7,13 +7,14 @@ namespace App\Domain\Categories\ValueObjects;
 enum CategoryType: string
 {
     case REVENUE = 'revenue';
+    case INCOME = 'income'; // Alias for REVENUE for backward compatibility
     case EXPENSE = 'expense';
     case TRANSFER = 'transfer';
 
     public function label(): string
     {
         return match ($this) {
-            self::REVENUE => 'Receita',
+            self::REVENUE, self::INCOME => 'Receita',
             self::EXPENSE => 'Despesa',
             self::TRANSFER => 'Transferência',
         };
@@ -21,7 +22,7 @@ enum CategoryType: string
 
     public function isRevenue(): bool
     {
-        return $this === self::REVENUE;
+        return in_array($this, [self::REVENUE, self::INCOME], true);
     }
 
     public function isExpense(): bool
@@ -32,6 +33,11 @@ enum CategoryType: string
     public function isTransfer(): bool
     {
         return $this === self::TRANSFER;
+    }
+
+    public function isIncome(): bool
+    {
+        return $this->isRevenue();
     }
 
     public static function values(): array

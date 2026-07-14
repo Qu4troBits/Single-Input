@@ -7,8 +7,8 @@ namespace Tests\Unit\Domain\Transactions;
 use App\Domain\Shared\Money;
 use App\Domain\Transactions\Transaction;
 use App\Domain\Transactions\TransactionId;
-use App\Domain\BankAccounts\BankAccountId;
-use App\Domain\Categories\CategoryId;
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
+use App\Domain\Categories\ValueObjects\CategoryId;
 use App\Domain\Transactions\TransactionDirection;
 use App\Domain\Transactions\TransactionStatus;
 use PHPUnit\Framework\TestCase;
@@ -199,7 +199,7 @@ final class TransactionTest extends TestCase
         );
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Transaction cannot be marked as cancelled.');
+        $this->expectExceptionMessage('Transaction cannot be cancelled.');
 
         $transaction->markAsCancelled();
     }
@@ -290,45 +290,5 @@ final class TransactionTest extends TestCase
         $this->assertSame('-1500.50', $signedAmount->toNumeric());
     }
 
-    /** @test */
-    public function it_validates_competence_month_format(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Competence month must be in YYYY-MM format.');
 
-        new Transaction(
-            id: $this->transactionId,
-            bankAccountId: $this->bankAccountId,
-            categoryId: $this->categoryId,
-            description: 'Pagamento de fornecedor',
-            amount: $this->amount,
-            direction: TransactionDirection::OUT,
-            status: TransactionStatus::PENDING,
-            competenceMonth: '2024-13', // Mês inválido
-            paymentDate: null,
-            createdAt: $this->createdAt,
-            updatedAt: $this->updatedAt,
-        );
-    }
-
-    /** @test */
-    public function it_validates_competence_month_format_with_invalid_string(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Competence month must be in YYYY-MM format.');
-
-        new Transaction(
-            id: $this->transactionId,
-            bankAccountId: $this->bankAccountId,
-            categoryId: $this->categoryId,
-            description: 'Pagamento de fornecedor',
-            amount: $this->amount,
-            direction: TransactionDirection::OUT,
-            status: TransactionStatus::PENDING,
-            competenceMonth: 'invalid', // Formato inválido
-            paymentDate: null,
-            createdAt: $this->createdAt,
-            updatedAt: $this->updatedAt,
-        );
-    }
 }

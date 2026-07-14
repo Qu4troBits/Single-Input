@@ -31,6 +31,7 @@ final class CreateBankAccountHandlerTest extends TestCase
             name: 'Conta Corrente',
             type: BankAccountType::CHECKING,
             bankCode: '001',
+            bankName: 'Banco do Brasil',
             agencyNumber: '1234',
             accountNumber: '567890',
             accountDigit: '1',
@@ -45,7 +46,7 @@ final class CreateBankAccountHandlerTest extends TestCase
                 return $bankAccount->getName() === $data->name
                     && $bankAccount->getType() === $data->type
                     && $bankAccount->getBankCode() === $data->bankCode
-                    && $bankAccount->getAgency() === $data->agencyNumber
+                    && $bankAccount->getAgencyNumber() === $data->agencyNumber
                     && $bankAccount->getAccountNumber() === $data->accountNumber
                     && $bankAccount->getAccountDigit() === $data->accountDigit
                     && $bankAccount->getDescription() === $data->description
@@ -60,11 +61,12 @@ final class CreateBankAccountHandlerTest extends TestCase
     public function test_it_creates_bank_account_with_nullable_fields(): void
     {
         $data = new CreateBankAccountData(
-            name: 'Carteira',
+            name: 'Carteira Digital',
             type: BankAccountType::WALLET,
-            bankCode: null,
-            agencyNumber: null,
-            accountNumber: null,
+            bankCode: '012',
+            bankName: 'Nubank',
+            agencyNumber: '1234',
+            accountNumber: '',
             accountDigit: null,
             description: null,
             initialBalance: Money::of('500.00'),
@@ -76,11 +78,11 @@ final class CreateBankAccountHandlerTest extends TestCase
             ->with($this->callback(function ($bankAccount) use ($data) {
                 return $bankAccount->getName() === $data->name
                     && $bankAccount->getType() === $data->type
-                    && $bankAccount->getBankCode() === null
-                    && $bankAccount->getAgency() === null
-                    && $bankAccount->getAccountNumber() === null
-                    && $bankAccount->getAccountDigit() === null
-                    && $bankAccount->getDescription() === null
+                    && $bankAccount->getBankCode() === $data->bankCode
+                    && $bankAccount->getAgencyNumber() === $data->agencyNumber
+                    && $bankAccount->getAccountNumber() === $data->accountNumber
+                    && $bankAccount->getAccountDigit() === $data->accountDigit
+                    && $bankAccount->getDescription() === $data->description
                     && $bankAccount->getInitialBalance()->equals($data->initialBalance);
             }));
 
@@ -110,9 +112,10 @@ final class CreateBankAccountHandlerTest extends TestCase
             $data = new CreateBankAccountData(
                 name: "Account {$type->value}",
                 type: $type,
-                bankCode: null,
-                agencyNumber: null,
-                accountNumber: null,
+                bankCode: '002',
+                bankName: 'Bradesco',
+                agencyNumber: '1234',
+                accountNumber: '',
                 accountDigit: null,
                 description: null,
                 initialBalance: Money::of('100.00'),

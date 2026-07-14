@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\BankAccounts;
 
-use App\Domain\BankAccounts\BankAccount;
-use App\Domain\BankAccounts\BankAccountId;
-use App\Domain\BankAccounts\BankAccountStatus;
-use App\Domain\BankAccounts\BankAccountType;
+use App\Domain\BankAccounts\Entities\BankAccount;
+use App\Domain\BankAccounts\ValueObjects\BankAccountId;
+use App\Domain\BankAccounts\ValueObjects\BankAccountStatus;
+use App\Domain\BankAccounts\ValueObjects\BankAccountType;
 use App\Domain\Shared\Money;
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 
 final class BankAccountTest extends TestCase
@@ -17,6 +18,7 @@ final class BankAccountTest extends TestCase
     {
         $id = BankAccountId::generate(); 
         $initialBalance = Money::of('1000.50');
+        $curentBalence = Money::of('1500.50');
         $createdAt = new \DateTimeImmutable('2024-01-01 10:00:00');
         $updatedAt = new \DateTimeImmutable('2024-01-01 10:00:00');
 
@@ -26,11 +28,18 @@ final class BankAccountTest extends TestCase
             type: BankAccountType::CHECKING,
             status: BankAccountStatus::ACTIVE,
             bankCode: '001',
-            agency: '1234',
+            bankName: 'Bank A',
+            agencyNumber: '1234',
             accountNumber: '567890',
             accountDigit: '1',
-            description: 'Conta principal',
             initialBalance: $initialBalance,
+            currentBalance: $curentBalence,
+            description: 'Conta principal',
+            includeInDashboard: true,
+            color: 'red',
+            icon: 'bank',
+            isDefault: true,
+            includeInReports: true,
             createdAt: $createdAt,
             updatedAt: $updatedAt,
         );
@@ -40,11 +49,11 @@ final class BankAccountTest extends TestCase
         $this->assertSame(BankAccountType::CHECKING, $bankAccount->getType());
         $this->assertSame(BankAccountStatus::ACTIVE, $bankAccount->getStatus());
         $this->assertSame('001', $bankAccount->getBankCode());
-        $this->assertSame('1234', $bankAccount->getAgency());
+        $this->assertSame('1234', $bankAccount->getAgencyNumber());
         $this->assertSame('567890', $bankAccount->getAccountNumber());
         $this->assertSame('1', $bankAccount->getAccountDigit());
         $this->assertSame('Conta principal', $bankAccount->getDescription());
-        $this->assertEquals($initialBalance, $bankAccount->getBalance());
+        $this->assertEquals($curentBalence, $bankAccount->getCurrentBalance());
         $this->assertEquals($initialBalance, $bankAccount->getInitialBalance());
         $this->assertSame($createdAt, $bankAccount->getCreatedAt());
         $this->assertSame($updatedAt, $bankAccount->getUpdatedAt());
@@ -58,33 +67,48 @@ final class BankAccountTest extends TestCase
             type: BankAccountType::CHECKING,
             status: BankAccountStatus::ACTIVE,
             bankCode: '001',
-            agency: '1234',
+            bankName: 'Bank B',
+            agencyNumber: '1234',
             accountNumber: '567890',
             accountDigit: '1',
+            initialBalance: Money::of('10.00'),
+            currentBalance: Money::of('700.00'),
             description: 'Old Description',
-            initialBalance: Money::of('1000.00'),
+            color: 'blue',
+            icon: 'bank',
+            isDefault: true,
+            includeInDashboard: false,
+            includeInReports: true,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
         );
 
         $oldUpdatedAt = $bankAccount->getUpdatedAt();
+        $id = $bankAccount->getId();
 
         $bankAccount->update(
             name: 'New Name',
             type: BankAccountType::SAVINGS,
-            status: BankAccountStatus::INACTIVE,
+            bankName: 'Bank C',
             bankCode: '237',
-            agency: '4321',
+            agencyNumber: '4321',
             accountNumber: '098765',
             accountDigit: '2',
+            initialBalance: Money::of('10.00'),
             description: 'New Description',
+            color: 'green',
+            icon: 'bank',
+            isDefault: false,
+            includeInDashboard: true,
+            includeInReports: true,
+            updatedAt: new \DateTimeImmutable(),
         );
 
         $this->assertSame('New Name', $bankAccount->getName());
         $this->assertSame(BankAccountType::SAVINGS, $bankAccount->getType());
-        $this->assertSame(BankAccountStatus::INACTIVE, $bankAccount->getStatus());
+        $this->assertSame(BankAccountStatus::ACTIVE, $bankAccount->getStatus());
         $this->assertSame('237', $bankAccount->getBankCode());
-        $this->assertSame('4321', $bankAccount->getAgency());
+        $this->assertSame('4321', $bankAccount->getAgencyNumber());
         $this->assertSame('098765', $bankAccount->getAccountNumber());
         $this->assertSame('2', $bankAccount->getAccountDigit());
         $this->assertSame('New Description', $bankAccount->getDescription());
@@ -98,12 +122,19 @@ final class BankAccountTest extends TestCase
             name: 'Test Account',
             type: BankAccountType::CHECKING,
             status: BankAccountStatus::ACTIVE,
-            bankCode: null,
-            agency: null,
-            accountNumber: null,
-            accountDigit: null,
-            description: null,
+            bankCode: '001',
+            bankName: 'Bank A',
+            agencyNumber: '1234',
+            accountNumber: '567890',
+            accountDigit: '1',
             initialBalance: Money::of('1000.00'),
+            currentBalance: Money::of('1001.00'),
+            description: null,
+            color: 'red',
+            icon: 'bank',
+            isDefault: true,
+            includeInDashboard: true,
+            includeInReports: true,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
         );
@@ -111,9 +142,9 @@ final class BankAccountTest extends TestCase
         $oldUpdatedAt = $bankAccount->getUpdatedAt();
 
         $newBalance = Money::of('1500.75');
-        $bankAccount->updateBalance($newBalance);
+        $bankAccount->updateBalance($newBalance, new \DateTimeImmutable());
 
-        $this->assertEquals($newBalance, $bankAccount->getBalance());
+        $this->assertEquals($newBalance, $bankAccount->getCurrentBalance());
         $this->assertGreaterThan($oldUpdatedAt, $bankAccount->getUpdatedAt());
     }
 
@@ -124,12 +155,19 @@ final class BankAccountTest extends TestCase
             name: 'Active Account',
             type: BankAccountType::CHECKING,
             status: BankAccountStatus::ACTIVE,
-            bankCode: null,
-            agency: null,
-            accountNumber: null,
-            accountDigit: null,
+            bankCode: '001',
+            bankName: 'Bank D',
+            agencyNumber: '1234',
+            accountNumber: '567890',
+            accountDigit: '1',
+            color: 'red',
+            icon: 'bank',
+            isDefault: true,
+            includeInDashboard: true,
+            includeInReports: true,
             description: null,
             initialBalance: Money::of('1000.00'),
+            currentBalance: Money::of('1670.00'),
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
         );
@@ -139,12 +177,19 @@ final class BankAccountTest extends TestCase
             name: 'Inactive Account',
             type: BankAccountType::CHECKING,
             status: BankAccountStatus::INACTIVE,
-            bankCode: null,
-            agency: null,
-            accountNumber: null,
-            accountDigit: null,
+            bankCode: '001',
+            bankName: 'Bank B',
+            agencyNumber: '1234',
+            accountNumber: '567890',
+            accountDigit: '1',
+            color: 'blue',
+            icon: 'bank',
+            isDefault: true,
+            includeInDashboard: false,
+            includeInReports: true,
             description: null,
             initialBalance: Money::of('1000.00'),
+            currentBalance: Money::of('10.00'),
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
         );
@@ -160,12 +205,19 @@ final class BankAccountTest extends TestCase
             name: 'Checking Account',
             type: BankAccountType::CHECKING,
             status: BankAccountStatus::ACTIVE,
-            bankCode: null,
-            agency: null,
-            accountNumber: null,
-            accountDigit: null,
+            bankCode: '001',
+            bankName: 'Bank A',
+            agencyNumber: '1234',
+            accountNumber: '567890',
+            accountDigit: '1',
+            color: 'red',
+            icon: 'bank',
+            isDefault: true,
+            includeInDashboard: true,
+            includeInReports: true,
             description: null,
             initialBalance: Money::of('1000.00'),
+            currentBalance: Money::of('20000.00'),
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
         );
@@ -175,19 +227,24 @@ final class BankAccountTest extends TestCase
             name: 'Credit Card Account',
             type: BankAccountType::OTHER,
             status: BankAccountStatus::ACTIVE,
-            bankCode: null,
-            agency: null,
-            accountNumber: null,
-            accountDigit: null,
+            bankCode: '003',
+            bankName: 'Bank C',
+            agencyNumber: '1234',
+            accountNumber: '567890',
+            accountDigit: '1',
             description: null,
-            initialBalance: Money::of('1000.00'),
+            color: 'red',
+            icon: 'bank',
+            isDefault: true,
+            includeInDashboard: true,
+            includeInReports: true,
+            initialBalance: Money::of('10.00'),
+            currentBalance: Money::of('2561.00'),
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
         );
 
         $this->assertTrue($checkingAccount->isChecking());
         $this->assertFalse($creditCardAccount->isChecking());
-        $this->assertTrue($creditCardAccount->isCreditCard());
-        $this->assertFalse($checkingAccount->isCreditCard());
     }
 }

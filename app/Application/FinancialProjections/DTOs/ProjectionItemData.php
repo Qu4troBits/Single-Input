@@ -9,11 +9,10 @@ use App\Domain\FinancialProjections\ProjectionType;
 final readonly class ProjectionItemData
 {
     public function __construct(
-        public string $id,
         public string $date,
         public string $description,
         public string $amount,
-        public ProjectionType $type,
+        public ProjectionType|string $type,
         public ?string $categoryId = null,
         public ?string $categoryName = null,
         public ?string $notes = null,

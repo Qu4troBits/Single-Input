@@ -17,7 +17,7 @@ final class FinancialProjectionTest extends TestCase
     private ProjectionType $type;
     private string $title;
 
-    protected function setUp(): void
+    protected function setUp(): void 
     {
         parent::setUp();
         

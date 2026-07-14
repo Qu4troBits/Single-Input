@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Categories;
 
-use App\Domain\Categories\Category;
-use App\Domain\Categories\CategoryId;
-use App\Domain\Categories\CategoryStatus;
-use App\Domain\Categories\CategoryType;
+use App\Domain\Categories\Entities\Category;
+use App\Domain\Categories\ValueObjects\CategoryId;
+use App\Domain\Categories\ValueObjects\CategoryStatus;
+use App\Domain\Categories\ValueObjects\CategoryType;
 use PHPUnit\Framework\TestCase;
 
 final class CategoryTest extends TestCase
 {
     public function test_it_creates_category_with_correct_properties(): void
     {
-        $id = CategoryId::generate(); 
+        $id = CategoryId::generate();  
         $createdAt = new \DateTimeImmutable('2024-01-01 10:00:00');
         $updatedAt = new \DateTimeImmutable('2024-01-01 10:00:00');
 
@@ -22,9 +22,14 @@ final class CategoryTest extends TestCase
             id: $id,
             name: 'Alimentação',
             type: CategoryType::EXPENSE,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-123',
+            description: 'Description',
             color: '#FF0000',
             icon: 'fa-utensils',
+            isOperating: true,
+            isTaxDeductible: true,
+            includeInReports: true,
+            isDefault: true,
             parentId: null,
             createdAt: $createdAt,
             updatedAt: $updatedAt,
@@ -47,9 +52,14 @@ final class CategoryTest extends TestCase
             id: CategoryId::generate(),
             name: 'Old Name',
             type: CategoryType::EXPENSE,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-128',
+            description: 'Description',
             color: '#FF0000',
             icon: 'fa-utensils',
+            isOperating: true,
+            isTaxDeductible: true,
+            includeInReports: true,
+            isDefault: true,
             parentId: null,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
@@ -59,16 +69,22 @@ final class CategoryTest extends TestCase
 
         $category->update(
             name: 'New Name',
-            type: CategoryType::INCOME,
-            status: CategoryStatus::INACTIVE,
+            type: CategoryType::REVENUE,
+            code: 'cat-128',
+            description: 'Description',
             color: '#00FF00',
             icon: 'fa-money-bill',
+            isOperating: true,
+            isTaxDeductible: true,
+            includeInReports: true,
+            isDefault: true,
             parentId: CategoryId::generate(),
+            updatedAt: new \DateTimeImmutable(),
         );
 
         $this->assertSame('New Name', $category->getName());
-        $this->assertSame(CategoryType::INCOME, $category->getType());
-        $this->assertSame(CategoryStatus::INACTIVE, $category->getStatus());
+        $this->assertSame(CategoryType::REVENUE, $category->getType());
+        $this->assertSame(CategoryStatus::ACTIVE, $category->getStatus()); // Our Category doesn't set INACTIVE on update
         $this->assertSame('#00FF00', $category->getColor());
         $this->assertSame('fa-money-bill', $category->getIcon());
         $this->assertNotNull($category->getParentId());
@@ -81,23 +97,22 @@ final class CategoryTest extends TestCase
             id: CategoryId::generate(),
             name: 'Test Category',
             type: CategoryType::EXPENSE,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-111',
+            description: 'Description',
             color: null,
             icon: null,
+            isOperating: true,
+            isTaxDeductible: true,
+            includeInReports: true,
+            isDefault: true,
             parentId: null,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
         );
 
-        $category->deactivate();
-        $this->assertSame(CategoryStatus::INACTIVE, $category->getStatus());
-        $this->assertFalse($category->isActive());
+        $category->archive(new \DateTimeImmutable());
+        $this->assertTrue($category->isArchived());
 
-        $category->activate();
-        $this->assertSame(CategoryStatus::ACTIVE, $category->getStatus());
-        $this->assertTrue($category->isActive());
-
-        $category->archive();
         $this->assertSame(CategoryStatus::ARCHIVED, $category->getStatus());
         $this->assertFalse($category->isActive());
     }
@@ -108,9 +123,14 @@ final class CategoryTest extends TestCase
             id: CategoryId::generate(),
             name: 'Income Category',
             type: CategoryType::INCOME,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-123',
+            description: null,
             color: null,
             icon: null,
+            isOperating: true,
+            isTaxDeductible: false,
+            includeInReports: true,
+            isDefault: false,
             parentId: null,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
@@ -120,9 +140,14 @@ final class CategoryTest extends TestCase
             id: CategoryId::generate(),
             name: 'Expense Category',
             type: CategoryType::EXPENSE,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-456',
+            description: null,
             color: null,
             icon: null,
+            isOperating: true,
+            isTaxDeductible: false,
+            includeInReports: true,
+            isDefault: false,
             parentId: null,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
@@ -132,9 +157,14 @@ final class CategoryTest extends TestCase
             id: CategoryId::generate(),
             name: 'Transfer Category',
             type: CategoryType::TRANSFER,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-789',
+            description: null,
             color: null,
             icon: null,
+            isOperating: true,
+            isTaxDeductible: false,
+            includeInReports: true,
+            isDefault: false,
             parentId: null,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
@@ -161,9 +191,14 @@ final class CategoryTest extends TestCase
             id: CategoryId::generate(),
             name: 'Child Category',
             type: CategoryType::EXPENSE,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-001',
+            description: null,
             color: null,
             icon: null,
+            isOperating: true,
+            isTaxDeductible: false,
+            includeInReports: true,
+            isDefault: false,
             parentId: $parentId,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),
@@ -173,9 +208,14 @@ final class CategoryTest extends TestCase
             id: CategoryId::generate(),
             name: 'Parent Category',
             type: CategoryType::EXPENSE,
-            status: CategoryStatus::ACTIVE,
+            code: 'cat-002',
+            description: null,
             color: null,
             icon: null,
+            isOperating: true,
+            isTaxDeductible: false,
+            includeInReports: true,
+            isDefault: false,
             parentId: null,
             createdAt: new \DateTimeImmutable(),
             updatedAt: new \DateTimeImmutable(),

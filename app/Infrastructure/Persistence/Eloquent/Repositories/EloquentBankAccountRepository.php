@@ -12,8 +12,6 @@ use App\Domain\BankAccounts\ValueObjects\BankAccountType;
 use App\Domain\Shared\Money;
 use App\Infrastructure\Persistence\Eloquent\Models\BankAccountModel;
 use DateTimeImmutable;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 final class EloquentBankAccountRepository implements BankAccountRepositoryInterface
 {

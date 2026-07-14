@@ -11,6 +11,7 @@ use App\Domain\Categories\ValueObjects\CategoryStatus;
 final class UpdateCategoryData
 {
     public function __construct(
+        public readonly CategoryId $id,
         public readonly string $name,
         public readonly CategoryType $type,
         public readonly CategoryStatus $status,

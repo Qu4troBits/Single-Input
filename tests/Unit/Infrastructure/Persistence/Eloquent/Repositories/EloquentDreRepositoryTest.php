@@ -23,6 +23,11 @@ final class EloquentDreRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
+        // Skip tests if PostgreSQL driver is not available
+        if (!extension_loaded('pdo_pgsql')) {
+            $this->markTestSkipped('PostgreSQL driver is not available');
+        }
+
         parent::setUp();
         
         $this->repository = new EloquentDreRepository();
@@ -429,9 +434,12 @@ final class EloquentDreRepositoryTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Limpar schema de teste
-        $schemaName = 'test_tenant';
-        \Illuminate\Support\Facades\DB::statement("DROP SCHEMA IF EXISTS {$schemaName} CASCADE");
+        // Only run tearDown if we didn't skip the test
+        if (extension_loaded('pdo_pgsql')) {
+            // Limpar schema de teste
+            $schemaName = 'test_tenant';
+            \Illuminate\Support\Facades\DB::statement("DROP SCHEMA IF EXISTS $schemaName CASCADE");
+        }
         
         parent::tearDown();
     }

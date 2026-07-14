@@ -83,7 +83,7 @@ final readonly class ProjectionItem
             'id' => $this->id,
             'date' => $this->date->format('Y-m-d'),
             'description' => $this->description,
-            'amount' => $this->amount->getAmount(),
+            'amount' => $this->amount->toNumeric(),
             'type' => $this->type->value,
             'category_id' => $this->categoryId,
             'category_name' => $this->categoryName,
@@ -95,11 +95,53 @@ final readonly class ProjectionItem
     private function validate(): void
     {
         if (empty($this->id)) {
-            throw new \InvalidArgumentException('Projection item ID cannot be empty.');
+            throw new \InvalidArgumentException('ID cannot be empty.');
         }
 
         if (empty($this->description)) {
-            throw new \InvalidArgumentException('Projection item description cannot be empty.');
+            throw new \InvalidArgumentException('Description cannot be empty.');
         }
+
+        if (mb_strlen($this->description) > 255) {
+            throw new \InvalidArgumentException('Description cannot exceed 255 characters.');
+        }
+
+        if ($this->amount->isNegative()) {
+            throw new \InvalidArgumentException('Amount cannot be negative.');
+        }
+
+        if ($this->categoryName && mb_strlen($this->categoryName) > 100) {
+            throw new \InvalidArgumentException('Category name cannot exceed 100 characters.');
+        }
+
+        if ($this->source && mb_strlen($this->source) > 50) {
+            throw new \InvalidArgumentException('Source cannot exceed 50 characters.');
+        }
+    }
+
+    public function getFormattedDate(): string
+    {
+        return $this->date->format('d/m/Y');
+    }
+
+    public function getFormattedAmount(): string
+    {
+        $num = (float)$this->amount->toNumeric();
+        return 'R$ ' . number_format($num, 2, ',', '.');
+    }
+
+    public function update(array $data): self
+    {
+        return new self(
+            id: $this->id,
+            date: isset($data['date']) ? \DateTimeImmutable::createFromFormat('Y-m-d', $data['date']) : $this->date,
+            description: $data['description'] ?? $this->description,
+            amount: isset($data['amount']) ? ($data['amount'] instanceof Money ? $data['amount'] : Money::of($data['amount'])) : $this->amount,
+            type: isset($data['type']) ? ($data['type'] instanceof ProjectionType ? $data['type'] : ProjectionType::from($data['type'])) : $this->type,
+            categoryId: $data['categoryId'] ?? $data['category_id'] ?? $this->categoryId,
+            categoryName: $data['categoryName'] ?? $data['category_name'] ?? $this->categoryName,
+            notes: $data['notes'] ?? $this->notes,
+            source: $data['source'] ?? $this->source,
+        );
     }
 }

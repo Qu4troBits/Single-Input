@@ -85,4 +85,61 @@ final class FinancialProjection
             'total' => $this->getTotal()->toNumeric(),
         ];
     }
+
+    public function removeItem(string $itemId): void
+    {
+        $this->items = array_values(
+            array_filter($this->items, fn(ProjectionItem $item) => $item->getId() !== $itemId)
+        );
+    }
+
+    public function updateItem(string|ProjectionItem $itemIdOrItem, array $data = []): void
+    {
+        if ($itemIdOrItem instanceof ProjectionItem) {
+            $itemId = $itemIdOrItem->getId();
+            foreach ($this->items as $index => $item) {
+                if ($item->getId() === $itemId) {
+                    $this->items[$index] = $itemIdOrItem;
+                    break;
+                }
+            }
+        } else {
+            foreach ($this->items as $index => $item) {
+                if ($item->getId() === $itemIdOrItem) {
+                    $this->items[$index] = $item->update($data);
+                    break;
+                }
+            }
+        }
+    }
+
+    public function getItem(string $itemId): ?ProjectionItem
+    {
+        foreach ($this->items as $item) {
+            if ($item->getId() === $itemId) {
+                return $item;
+            }
+        }
+        return null;
+    }
+
+    public function getItemsByCategory(?string $categoryId = null): array
+    {
+        if ($categoryId === null) {
+            return array_values($this->items);
+        }
+        return array_values(
+            array_filter($this->items, fn(ProjectionItem $item) => $item->getCategoryId() === $categoryId)
+        );
+    }
+
+    public function getItemsByDateRange(\DateTimeImmutable $startDate, \DateTimeImmutable $endDate): array
+    {
+        return array_values(
+            array_filter(
+                $this->items,
+                fn(ProjectionItem $item) => $item->getDate() >= $startDate && $item->getDate() <= $endDate
+            )
+        );
+    }
 }

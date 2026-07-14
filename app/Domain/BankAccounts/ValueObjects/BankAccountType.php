@@ -10,6 +10,7 @@ enum BankAccountType: string
     case SAVINGS = 'savings';
     case INVESTMENT = 'investment';
     case WALLET = 'wallet';
+    case CREDIT_CARD = 'credit_card';
     case OTHER = 'other';
 
     public function label(): string
@@ -19,6 +20,7 @@ enum BankAccountType: string
             self::SAVINGS => 'Conta Poupança',
             self::INVESTMENT => 'Conta Investimento',
             self::WALLET => 'Carteira Digital',
+            self::CREDIT_CARD => 'Cartão de Crédito',
             self::OTHER => 'Outro',
         };
     }
@@ -31,5 +33,15 @@ enum BankAccountType: string
     public static function values(): array
     {
         return array_column(self::cases(), 'value');
+    }
+
+    public function isChecking(): bool
+    {
+        return $this === self::CHECKING;
+    }
+
+    public function isCreditCard(): bool
+    {
+        return $this === self::CREDIT_CARD;
     }
 }
